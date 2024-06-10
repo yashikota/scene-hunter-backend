@@ -13,23 +13,23 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 	user := model.User{}
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		util.JsonErrorResponse(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
 
 	// Validate the parsed data
 	if user.ID == "" {
-		http.Error(w, "ID is required", http.StatusBadRequest)
+		util.JsonErrorResponse(w, http.StatusBadRequest, "id is required")
 		return
 	}
 
 	if user.Name == "" {
-		http.Error(w, "Name is required", http.StatusBadRequest)
+		util.JsonErrorResponse(w, http.StatusBadRequest, "name is required")
 		return
 	}
 
 	if user.Lang == "" {
-		http.Error(w, "Language is required", http.StatusBadRequest)
+		util.JsonErrorResponse(w, http.StatusBadRequest, "lang is required")
 		return
 	}
 
@@ -38,8 +38,20 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Get Room ID
 	digits := 6
-	roomID := util.GenerateRoomID(digits, user.ID)
+	roomID, err := util.GenerateRoomID(digits, user.ID)
+	if err != nil {
+		util.JsonErrorResponse(w, http.StatusInternalServerError, "Failed to creation room")
+		return
+	}
 
 	// DEBUG: Print the room ID
 	log.Println("Room ID:", roomID)
+
+	// response
+	res := model.Room{
+		RoomID: roomID,
+		Message: "Room created successfully",
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(res)
 }
