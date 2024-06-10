@@ -13,9 +13,9 @@ WORKDIR /app
 COPY go.mod ./
 RUN go mod download
 
-COPY src/ ./src/
+COPY src/ ./internal/
 
-RUN go build -o /bin/main -ldflags="-s -w" -trimpath ./src
+RUN go build -o /bin/main -ldflags="-s -w" -trimpath ./internal
 
 # ======
 # Deploy
