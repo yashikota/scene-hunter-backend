@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"math"
 	"time"
-	"strconv"
 )
 
-func GenerateRoomID(digits int, id string) (int, error) {
+func GenerateRoomID(digits int, id string) (string, error) {
 	// Validate the number of digits
 	if digits < 1 || digits > 10 {
-		return 0, fmt.Errorf("digits must be between 1 and 10")
+		return "", fmt.Errorf("digits must be between 1 and 10")
 	}
 
 	// Combine ID and UNIX timestamp and hash it
@@ -27,5 +26,5 @@ func GenerateRoomID(digits int, id string) (int, error) {
 	format := fmt.Sprintf("%%0%dd", digits)
 	roomID := fmt.Sprintf(format, uniqueNumber)
 
-	return strconv.Atoi(roomID)
+	return roomID, nil
 }
