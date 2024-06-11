@@ -7,6 +7,7 @@ type User struct {
 }
 
 type Room struct {
-	RoomID int    `json:"room_id,omitempty"`
-	Message string `json:"message"`
+	GameMaster   User   `json:"game_master"`
+	Players      []User `json:"players"`
+	TotalPlayers int    `json:"total_players"`
 }

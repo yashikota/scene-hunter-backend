@@ -10,7 +10,7 @@ import (
 	"github.com/yashikota/scene-hunter-backend/model"
 )
 
-func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
+func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 	user := model.User{}
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
@@ -37,30 +37,11 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 	// DEBUG: Print the form data
 	log.Println("ID:", user.ID, "Name:", user.Name, "Language:", user.Lang)
 
-	// Get Room ID
-	var roomID string
-	for {
-		digits := 6
-		roomID, err = util.GenerateRoomID(digits, user.ID)
-		if err != nil {
-			util.JsonResponse(w, http.StatusInternalServerError, "Failed to creation room")
-			return
-		}
-
-		// Check if the room already exists
-		exist := room.CheckExistRoom(roomID)
-		if !exist {
-			break
-		}
-	}
-
-	// DEBUG: Print the room ID
-	log.Println("Room ID:", roomID)
-
-	// Create a room
-	err = room.CreateRoom(roomID)
-	if err != nil {
-		util.JsonResponse(w, http.StatusInternalServerError, "Failed to creation room")
+	// Check if the room exists
+	roomID := r.URL.Query().Get("room_id")
+	exist := room.CheckExistRoom(roomID)
+	if !exist {
+		util.JsonResponse(w, http.StatusNotFound, "Room does not exist")
 		return
 	}
 
@@ -71,14 +52,8 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// response
-	res := struct {
-		RoomID  string `json:"room_id,omitempty"`
-		Message string `json:"message"`
-	}{
-		RoomID:  roomID,
-		Message: "Room created successfully",
-	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(res)
+	// DEBUG: Print the room ID
+	log.Println("Room ID:", roomID)
+
+	util.JsonResponse(w, http.StatusOK, "Successfully joined the room")
 }
