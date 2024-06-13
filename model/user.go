@@ -9,5 +9,5 @@ type User struct {
 type Room struct {
 	GameMaster   User   `json:"game_master"`
 	Players      []User `json:"players"`
-	TotalPlayers int    `json:"total_players"`
+	TotalPlayers string `json:"total_players"`
 }
