@@ -1,41 +1,19 @@
 package handler
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 
 	"github.com/yashikota/scene-hunter-backend/internal/room"
 	"github.com/yashikota/scene-hunter-backend/internal/util"
-	"github.com/yashikota/scene-hunter-backend/model"
 )
 
 func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
-	user := model.User{}
-	err := json.NewDecoder(r.Body).Decode(&user)
+	user, err := util.ParseAndValidateUser(r)
 	if err != nil {
-		util.JsonResponse(w, http.StatusBadRequest, "Invalid request payload")
+		util.JsonResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
-
-	// Validate the parsed data
-	if user.ID == "" {
-		util.JsonResponse(w, http.StatusBadRequest, "id is required")
-		return
-	}
-
-	if user.Name == "" {
-		util.JsonResponse(w, http.StatusBadRequest, "name is required")
-		return
-	}
-
-	if user.Lang == "" {
-		util.JsonResponse(w, http.StatusBadRequest, "lang is required")
-		return
-	}
-
-	// DEBUG: Print the form data
-	log.Println("ID:", user.ID, "Name:", user.Name, "Language:", user.Lang)
 
 	// Check if the room exists
 	roomID := r.URL.Query().Get("room_id")
