@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 
 	"github.com/yashikota/scene-hunter-backend/internal/room"
@@ -26,9 +25,6 @@ func GetRoomUsersHandler(w http.ResponseWriter, r *http.Request) {
 		util.JsonResponse(w, http.StatusInternalServerError, "Failed to get users in the room")
 		return
 	}
-
-	// DEBUG: Print the users in the room
-	log.Println("Users in the room:", *users)
 
 	// Response
 	w.Header().Set("Content-Type", "application/json")

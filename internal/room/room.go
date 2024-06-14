@@ -1,27 +1,19 @@
 package room
 
 import (
-	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/yashikota/scene-hunter-backend/internal/util"
 	"github.com/yashikota/scene-hunter-backend/model"
 )
 
-var ctx = context.Background()
-var client = util.ConnectToUpstashRedis()
+var ctx, client = util.SetUpRedisClient()
 
 func CreateRoom(roomID string, user model.User) error {
-	gameMaster, err := json.Marshal(user)
-	if err != nil {
-		return err
-	}
+	newRoom := fmt.Sprintf(`{"game_master":{"id":"%s","name":"%s","lang":"%s"},"players":[],"total_players":0}`, user.ID, user.Name, user.Lang)
 
-	err = client.HSet(ctx, roomID, map[string]interface{}{
-		"game_master":   gameMaster,
-		"total_players": 0,
-		"players":       "[]",
-	}).Err()
+	err := client.JSONSet(ctx, roomID, "$", newRoom).Err()
 	if err != nil {
 		return err
 	}
@@ -30,37 +22,14 @@ func CreateRoom(roomID string, user model.User) error {
 }
 
 func JoinRoom(roomID string, user model.User) error {
-	// Convert user data to JSON
-	playerData, err := json.Marshal(user)
+	newPlayer := fmt.Sprintf(`{"id":"%s","name":"%s","lang":"%s"}`, user.ID, user.Name, user.Lang)
+
+	err := client.JSONArrAppend(ctx, roomID, "$.players", newPlayer).Err()
 	if err != nil {
 		return err
 	}
 
-	// Get the current player list
-	playerListData, err := client.HGet(ctx, roomID, "players").Result()
-	if err != nil {
-		return err
-	}
-
-	var players []json.RawMessage
-	err = json.Unmarshal([]byte(playerListData), &players)
-	if err != nil {
-		return err
-	}
-
-	// Add the new player to the player list
-	players = append(players, playerData)
-
-	// Update the player list
-	updatedPlayerListData, err := json.Marshal(players)
-	if err != nil {
-		return err
-	}
-
-	err = client.HSet(ctx, roomID, map[string]interface{}{
-		"players":       updatedPlayerListData,
-		"total_players": len(players),
-	}).Err()
+	err = client.JSONNumIncrBy(ctx, roomID, "$.total_players", 1).Err()
 	if err != nil {
 		return err
 	}
@@ -69,44 +38,63 @@ func JoinRoom(roomID string, user model.User) error {
 }
 
 func CheckExistRoom(roomID string) bool {
-	exists, err := client.Exists(ctx, roomID).Result()
-	if err != nil || exists == 0 {
-		return false
-	}
+	result := client.Exists(ctx, roomID)
 
-	return true
+	return result.Val() == 1
 }
 
-func GetRoomUsers(roomID string) (*model.Room, error) {
-	roomData, err := client.HGetAll(ctx, roomID).Result()
+func CheckExistUser(roomID string, userID string) (bool, error) {
+	result, err := client.JSONGet(ctx, roomID, fmt.Sprintf("$.players[?(@.id=='%s')]", userID)).Result()
+	if err != nil {
+		return false, err
+	}
+
+	if result == "" {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+func GetRoomUsers(roomID string) ([]*model.Room, error) {
+	jsonData, err := client.JSONGet(ctx, roomID, "$").Result()
 	if err != nil {
 		return nil, err
 	}
 
-	// Convert the room data to a Room struct
-	gameMaster := model.User{}
-	err = json.Unmarshal([]byte(roomData["game_master"]), &gameMaster)
+	var roomData []*model.Room
+	err = json.Unmarshal([]byte(jsonData), &roomData)
 	if err != nil {
 		return nil, err
 	}
 
-	var players []model.User
-	err = json.Unmarshal([]byte(roomData["players"]), &players)
+	return roomData, nil
+}
+
+func DeleteRoomUser(roomID string, userID string) error {
+	err := client.JSONArrPop(ctx, roomID, "$.players", 0).Err()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	room := &model.Room{
-		GameMaster:   gameMaster,
-		Players:      players,
-		TotalPlayers: roomData["total_players"],
+	err = client.JSONNumIncrBy(ctx, roomID, "$.total_players", -1).Err()
+	if err != nil {
+		return err
 	}
 
-	return room, nil
+	return nil
 }
 
 func DeleteRoom(roomID string) error {
-	result := client.Del(ctx, roomID)
+	err := client.Del(ctx, roomID).Err()
+	if err != nil {
+		return err
+	}
 
-	return result.Err()
+	err = util.DeleteDir(fmt.Sprintf("uploads/%s", roomID))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

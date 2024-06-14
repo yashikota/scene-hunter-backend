@@ -1,6 +1,7 @@
 package util
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -16,7 +17,7 @@ func loadEnv() {
 	}
 }
 
-func getUpstashRedisSecret() (string, string) {
+func getUpstashSecret() (string, string) {
 	loadEnv()
 
 	UPSTASH_REDIS_URL := os.Getenv("UPSTASH_REDIS_URL")
@@ -25,11 +26,18 @@ func getUpstashRedisSecret() (string, string) {
 	return UPSTASH_REDIS_URL, UPSTASH_REDIS_TOKEN
 }
 
-func ConnectToUpstashRedis() *redis.Client {
-	upstashRedisURL, upstashRedisToken := getUpstashRedisSecret()
-	upstashUrl := fmt.Sprintf("rediss://default:%s@%s", upstashRedisToken, upstashRedisURL)
+func connectToUpstash() *redis.Client {
+	upstashURL, upstashRedisToken := getUpstashSecret()
+	upstashUrl := fmt.Sprintf("rediss://default:%s@%s", upstashRedisToken, upstashURL)
 	opt, _ := redis.ParseURL(upstashUrl)
 	client := redis.NewClient(opt)
 
 	return client
+}
+
+func SetUpRedisClient() (context.Context, *redis.Client) {
+	var ctx = context.Background()
+	var client = connectToUpstash()
+
+	return ctx, client
 }
