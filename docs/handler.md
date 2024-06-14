@@ -1,5 +1,50 @@
 # handler
 
+## generate_user_id
+
+ユーザーIDの生成。  
+UUID version 7の形式でIDを発行。  
+発行したIDはJSONのmessageの値として返却。  
+
+### Request
+
+`/api/generate_user_id` にGETリクエストを投げる。  
+
+### Example
+
+```sh
+curl -X GET "http://localhost:8080/api/generate_user_id"
+```
+
+### Response
+
+| Status Code | Response | cause |
+| ----------- | -------- | ----- |
+| 200 | {UUID} | UUIDの生成に成功 |
+| 500 | Failed to generate user ID | サーバー内部でIDの生成に失敗 |
+
+## exist_user_id
+
+ユーザーIDが存在するか確認。  
+
+### Request
+
+`/api/exist_user_id` にGETリクエストを投げる。  
+
+### Example
+
+```sh
+curl -X GET "http://localhost:8080/api/exist_user_id?user_id={uuid}"
+```
+
+### Response
+
+| Status Code | Response | cause |
+| ----------- | -------- | ----- |
+| 200 | User ID exists | ユーザーが存在する |
+| 404 | User ID does not exist | ユーザーが存在しない |
+| 500 | Failed to check user ID | サーバー内部でIDの確認に失敗 |
+
 ## crate_room
 
 部屋の作成。  
@@ -15,7 +60,7 @@ RoomIDが衝突していないことを確認後[^1]、部屋を作成しリク�
 #### Example
 
 ```sh
-curl -X POST http://localhost:8080/api/create_room \
+curl -X POST "http://localhost:8080/api/create_room" \
                  -H "Content-Type: application/json" \
                  -d '{"id": "1", "name": "hoge", "lang": "ja"}'
 ```
