@@ -7,6 +7,29 @@ servers:
   - url: https://sh.yashikota.com
     port: 8080
 paths:
+  /api/generate_user_id:
+    get:
+      summary: Generate a new user ID
+      responses:
+        '200':
+          description: Successfully generated a new user ID
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
   /api/create_room:
     post:
       summary: Create a new room

@@ -11,6 +11,7 @@ import (
 func main() {
 	mux := http.NewServeMux()
 
+	// API
 	mux.HandleFunc("GET /api/generate_user_id", handler.GenerateUserIDHandler)
 	mux.HandleFunc("GET /api/exist_user_id", handler.ExistUserIDHandler)
 	mux.HandleFunc("POST /api/create_room", handler.CreateRoomHandler)
@@ -22,6 +23,10 @@ func main() {
 	mux.HandleFunc("GET /api/result", handler.ResultHandler)
 	mux.HandleFunc("PUT /api/change_game_master", handler.ChangeGameMasterHandler)
 	mux.HandleFunc("GET /api/ping", handler.PingHandler)
+
+	// Swagger UI
+	fileServer := http.FileServer(http.Dir("./swagger"))
+	mux.Handle("/swagger/", http.StripPrefix("/swagger", fileServer))
 
 	handler := cors.Default().Handler(mux)
 	log.Fatal(http.ListenAndServe(":8080", handler))
