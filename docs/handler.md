@@ -9,11 +9,18 @@ UUID version 7の形式でIDを発行。
 ### Request
 
 `/api/generate_user_id` にGETリクエストを投げる。  
+オプションで期限を設定できる。デフォルトは86400秒(1日)。  
 
 ### Example
 
 ```sh
 curl -X GET "http://localhost:8080/api/generate_user_id"
+```
+
+期限を決めたい時。  
+
+```sh
+curl -X GET "http://localhost:8080/api/generate_user_id?ttl=60"
 ```
 
 ### Response

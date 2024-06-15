@@ -2,12 +2,18 @@ package handler
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/yashikota/scene-hunter-backend/internal/util"
 )
 
 func GenerateUserID(w http.ResponseWriter, r *http.Request) {
-	userID, err := util.GenerateUserID()
+	ttl, _ := strconv.Atoi(r.URL.Query().Get("ttl"))
+	if ttl == 0 { // if ttl is not set, set 1 day
+		ttl = 60 * 60 * 24 // 1 day
+	}
+
+	userID, err := util.GenerateUserID(ttl)
 	if err != nil {
 		util.JsonResponse(w, http.StatusInternalServerError, "Failed to generate user ID")
 		return

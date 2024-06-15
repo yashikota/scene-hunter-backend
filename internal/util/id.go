@@ -8,14 +8,14 @@ import (
 
 var ctx, client = SetUpRedisClient()
 
-func GenerateUserID() (string, error) {
+func GenerateUserID(ttl int) (string, error) {
 	id, err := uuid.NewV7()
 	if err != nil {
 		return "", err
 	}
 
 	// Set TTL
-	err = setUserID(id.String())
+	err = setUserID(id.String(), ttl)
 	if err != nil {
 		return "", err
 	}
@@ -23,9 +23,9 @@ func GenerateUserID() (string, error) {
 	return id.String(), nil
 }
 
-func setUserID(userID string) error {
+func setUserID(userID string, ttl int) error {
 	now := time.Now().Unix()
-	expire := now + 60 // 1 minute
+	expire := now + int64(ttl)
 
 	_, err := client.HSet(ctx, "UserID", userID, expire).Result()
 	if err != nil {
