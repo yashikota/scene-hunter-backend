@@ -16,17 +16,18 @@ func UploadPhoto(w http.ResponseWriter, r *http.Request) {
 	const uploadDir = "uploads"
 	const maxConcurrentWorkers = 5
 
-	// Get RoomID
-	roomID, userID, err := util.ParseAndValidateRequest(r)
+	user, err := util.ParseAndValidateUser(r, 100)
 	if err != nil {
 		util.JsonResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	log.Printf("Room ID: %s, User ID: %s", roomID, userID)
+	log.Printf("User ID: %s", user.ID)
 
 	// Check if the room exists
-	if !room.CheckExistRoom(roomID) {
-		util.JsonResponse(w, http.StatusNotFound, "Room not found")
+	roomID := r.URL.Query().Get("room_id")
+	exist := room.CheckExistRoom(roomID)
+	if !exist {
+		util.JsonResponse(w, http.StatusNotFound, "Room does not exist")
 		return
 	}
 

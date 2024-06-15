@@ -9,7 +9,7 @@ import (
 )
 
 func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
-	user, err := util.ParseAndValidateUser(r)
+	user, err := util.ParseAndValidateUser(r, 111)
 	if err != nil {
 		util.JsonResponse(w, http.StatusBadRequest, err.Error())
 		return
@@ -17,6 +17,11 @@ func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Check if the room exists
 	roomID := r.URL.Query().Get("room_id")
+	if roomID == "" {
+		util.JsonResponse(w, http.StatusBadRequest, "room_id is required")
+		return
+	}
+
 	exist := room.CheckExistRoom(roomID)
 	if !exist {
 		util.JsonResponse(w, http.StatusNotFound, "Room does not exist")

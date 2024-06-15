@@ -8,7 +8,7 @@ import (
 )
 
 func DeleteRoomUserHandler(w http.ResponseWriter, r *http.Request) {
-	user, err := util.ParseAndValidateUser(r)
+	user, err := util.ParseAndValidateUser(r, 100)
 	if err != nil {
 		util.JsonResponse(w, http.StatusBadRequest, err.Error())
 		return
