@@ -3,19 +3,16 @@ package util
 import (
 	"time"
 
-	"github.com/gofrs/uuid/v5"
+	"github.com/oklog/ulid/v2"
 )
 
 var ctx, client = SetUpRedisClient()
 
 func GenerateUserID(ttl int) (string, error) {
-	id, err := uuid.NewV7()
-	if err != nil {
-		return "", err
-	}
+	id := ulid.Make()
 
 	// Set TTL
-	err = setUserID(id.String(), ttl)
+	err := setUserID(id.String(), ttl)
 	if err != nil {
 		return "", err
 	}

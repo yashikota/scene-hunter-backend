@@ -3,7 +3,6 @@
 ## generate_user_id
 
 ユーザーIDの生成。  
-UUID version 7の形式でIDを発行。  
 発行したIDはJSONのmessageの値として返却。  
 
 ### Request
