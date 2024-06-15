@@ -12,7 +12,7 @@ import (
 	"github.com/yashikota/scene-hunter-backend/internal/util"
 )
 
-func UploadPhoto(w http.ResponseWriter, r *http.Request) {
+func UploadPhotoHandler(w http.ResponseWriter, r *http.Request) {
 	const uploadDir = "uploads"
 	const maxConcurrentWorkers = 5
 
