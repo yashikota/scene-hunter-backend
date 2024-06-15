@@ -3,6 +3,7 @@ package room
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 
 	"github.com/yashikota/scene-hunter-backend/internal/util"
 	"github.com/yashikota/scene-hunter-backend/model"
@@ -11,9 +12,27 @@ import (
 var ctx, client = util.SetUpRedisClient()
 
 func CreateRoom(roomID string, user model.User) error {
-	newRoom := fmt.Sprintf(`{"game_master":{"id":"%s","name":"%s","lang":"%s"},"players":[],"total_players":0}`, user.ID, user.Name, user.Lang)
+	newRoom := model.Room{
+		GameMasterID: user.ID,
+		TotalPlayers: 0,
+		Users: map[string]model.User{
+			user.ID: {
+				ID:     user.ID,
+				Name:   user.Name,
+				Lang:   user.Lang,
+				Status: "active",
+				Score:  []float32{},
+				Photo:  []string{},
+			},
+		},
+	}
 
-	err := client.JSONSet(ctx, roomID, "$", newRoom).Err()
+	roomJSON, err := json.Marshal(newRoom)
+	if err != nil {
+		return err
+	}
+
+	err = client.JSONSet(ctx, roomID, "$", string(roomJSON)).Err()
 	if err != nil {
 		return err
 	}
@@ -22,10 +41,23 @@ func CreateRoom(roomID string, user model.User) error {
 }
 
 func JoinRoom(roomID string, user model.User) error {
-	newPlayer := fmt.Sprintf(`{"id":"%s","name":"%s","lang":"%s"}`, user.ID, user.Name, user.Lang)
+	newPlayer := model.User{
+		ID:     user.ID,
+		Name:   user.Name,
+		Lang:   user.Lang,
+		Status: "active",
+		Score:  []float32{},
+		Photo:  []string{},
+	}
 
-	err := client.JSONArrAppend(ctx, roomID, "$.players", newPlayer).Err()
+	playerJSON, err := json.Marshal(newPlayer)
 	if err != nil {
+		return err
+	}
+
+	err = client.JSONSet(ctx, roomID, "$.users."+user.ID, string(playerJSON)).Err()
+	if err != nil {
+		log.Printf("Failed to join the room: %v", err)
 		return err
 	}
 
@@ -44,7 +76,7 @@ func CheckExistRoom(roomID string) bool {
 }
 
 func CheckExistUser(roomID string, userID string) (bool, error) {
-	result, err := client.JSONGet(ctx, roomID, fmt.Sprintf("$.players[?(@.id=='%s')]", userID)).Result()
+	result, err := client.JSONGet(ctx, roomID, fmt.Sprintf("$.users.%s", userID)).Result()
 	if err != nil {
 		return false, err
 	}
@@ -71,8 +103,17 @@ func GetRoomUsers(roomID string) ([]*model.Room, error) {
 	return roomData, nil
 }
 
+func ChangeGameMaster(roomID string, userID string) error {
+	err := client.JSONSet(ctx, roomID, "$.game_master_id", fmt.Sprintf("\"%s\"", userID)).Err()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func DeleteRoomUser(roomID string, userID string) error {
-	err := client.JSONArrPop(ctx, roomID, "$.players", 0).Err()
+	err := client.JSONDel(ctx, roomID, fmt.Sprintf("$.users.%s", userID)).Err()
 	if err != nil {
 		return err
 	}
