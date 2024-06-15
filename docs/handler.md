@@ -16,10 +16,10 @@
 curl -X GET "http://localhost:8080/api/generate_user_id"
 ```
 
-期限を決めたい時。  
+期限を決めたい時は、秒単位で指定する。  
 
 ```sh
-curl -X GET "http://localhost:8080/api/generate_user_id?ttl=60"
+curl -X GET "http://localhost:8080/api/generate_user_id?ttl={ttl}"
 ```
 
 ### Response
@@ -40,7 +40,7 @@ curl -X GET "http://localhost:8080/api/generate_user_id?ttl=60"
 ### Example
 
 ```sh
-curl -X GET "http://localhost:8080/api/exist_user_id?user_id={uuid}"
+curl -X GET "http://localhost:8080/api/exist_user_id?user_id={UserID}"
 ```
 
 ### Response
@@ -68,7 +68,7 @@ RoomIDが衝突していないことを確認後[^1]、部屋を作成しリク�
 ```sh
 curl -X POST "http://localhost:8080/api/create_room" \
                  -H "Content-Type: application/json" \
-                 -d '{"id": "1", "name": "hoge", "lang": "ja"}'
+                 -d '{"id": "{UserID}", "name": "{UserName}", "lang": "{UserLang}"}'
 ```
 
 ### Response
@@ -90,14 +90,14 @@ curl -X POST "http://localhost:8080/api/create_room" \
 
 ### Request
 
-`/api/join_room?room_id=<room_id>` に `{id, name, lang}` を含んだPOSTリクエストを投げる。
+`/api/join_room?room_id={room_id}` に `{id, name, lang}` を含んだPOSTリクエストを投げる。
 
 #### Example
 
 ```sh
-curl -X POST "http://localhost:8080/api/join_room?room_id=123456" \
+curl -X POST "http://localhost:8080/api/join_room?room_id={RoomID}" \
                  -H "Content-Type: application/json" \
-                 -d '{"id": "2", "name": "fuga", "lang": "en"}'
+                 -d '{"id": "{UserID}", "name": "{UserName}", "lang": "{UserLang}"}'
 ```
 
 ### Response
@@ -120,12 +120,12 @@ curl -X POST "http://localhost:8080/api/join_room?room_id=123456" \
 
 ### Request
 
-`/api/get_room_users?room_id=<room_id>` にGETリクエストを送る。
+`/api/get_room_users?room_id={room_id}` にGETリクエストを送る。
 
 #### Example
 
 ```sh
-curl -X GET "http://localhost:8080/api/get_room_users?room_id=123456"
+curl -X GET "http://localhost:8080/api/get_room_users?room_id={RoomID}"
 ```
 
 ### Response
@@ -137,6 +137,56 @@ curl -X GET "http://localhost:8080/api/get_room_users?room_id=123456"
 | 405 | Method Not Allowed | HTTP MethodがGET以外 |
 | 500 | Failed to get users in the room | サーバー内部でユーザー情報の取得に失敗 |
 
+## change_game_master
+
+指定されたルームのゲームマスターを変更。  
+
+### Request
+
+`/api/change_game_master?room_id={room_id}` に `{id}` を含んだPUTリクエストを送る。
+
+### Example
+
+```sh
+curl -X PUT "http://localhost:8080/api/change_game_master?room_id={RoomID}" \
+                       -H "Content-Type: application/json" \
+                       -d '{"id": "{UserID}"}'
+```
+
+### Response
+
+| Status Code | Response | cause |
+| 200 | Successfully changed the game master | 処理が全て正常に終了 |
+| 400 | room_id is required | RoomIDがリクエストに含まれていない |
+| 404 | Room does not exist | 指定されたRoomIDが存在しない |
+| 404 | User does not exist | ユーザーが存在しない |
+| 405 | Method Not Allowed | HTTP MethodがPUT以外 |
+| 500 | Failed to check if the user exists | ユーザーの存在確認に失敗 |
+| 500 | Failed to change the game master | ゲームマスターの変更に失敗 |
+
+## delete_room_users
+
+RoomIDで指定された部屋にいるUserの削除。  
+
+### Request
+
+`/api/get_room_users?room_id={room_id}` にDELETEリクエストを送る。
+
+#### Example
+
+```sh
+curl -X DELETE "http://localhost:8080/api/get_room_users?room_id={RoomID}"
+```
+
+### Response
+
+| Status Code | Response | cause |
+| ----------- | -------- | ----- |
+| 200 | Room deleted successfully | 処理が全て正常に終了 |
+| 404 | Room does not exist | 指定されたRoomIDが存在しない |
+| 405 | Method Not Allowed | HTTP MethodがDELETE以外 |
+| 500 | Failed to delete room | サーバー内部でユーザーの削除に失敗 |
+
 ## delete_room
 
 部屋の削除。  
@@ -144,12 +194,12 @@ curl -X GET "http://localhost:8080/api/get_room_users?room_id=123456"
 
 ### Request
 
-`/api/delete_room?room_id=<room_id>` にDELETEリクエストを送る。
+`/api/delete_room?room_id={room_id}` にDELETEリクエストを送る。
 
 #### Example
 
 ```sh
-curl -X DELETE "http://localhost:8080/api/delete_room?room_id=123456"
+curl -X DELETE "http://localhost:8080/api/delete_room?room_id={RoomID}"
 ```
 
 ### Response

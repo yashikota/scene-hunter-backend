@@ -20,6 +20,7 @@ func main() {
 	mux.HandleFunc("DELETE /api/delete_room_user", handler.DeleteRoomUserHandler)
 	mux.HandleFunc("POST /api/upload_photo", handler.UploadPhoto)
 	mux.HandleFunc("GET /api/result", handler.ResultHandler)
+	mux.HandleFunc("PUT /api/change_game_master", handler.ChangeGameMaster)
 	mux.HandleFunc("GET /api/ping", handler.PingHandler)
 
 	handler := cors.Default().Handler(mux)
