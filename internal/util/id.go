@@ -53,5 +53,5 @@ func ExistUserID(userID string) (bool, error) {
 		}
 	}
 
-	return true, nil
+	return result, nil
 }

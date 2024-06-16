@@ -49,5 +49,5 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	util.SuccessJsonResponse(w, http.StatusCreated, roomID)
+	util.SuccessJsonResponse(w, http.StatusCreated, "room id", roomID)
 }

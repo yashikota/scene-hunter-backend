@@ -32,5 +32,5 @@ func DeleteRoomHandler(w http.ResponseWriter, r *http.Request) {
 	// DEBUG: Print the room ID
 	log.Println("Room ID:", roomID)
 
-	util.SuccessJsonResponse(w, http.StatusOK, "successfully deleted the room")
+	util.SuccessJsonResponse(w, http.StatusOK, "message", "successfully deleted the room")
 }

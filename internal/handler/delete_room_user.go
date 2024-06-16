@@ -41,5 +41,5 @@ func DeleteRoomUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	util.SuccessJsonResponse(w, http.StatusOK, "deleted the user from the room")
+	util.SuccessJsonResponse(w, http.StatusOK, "message", "deleted the user from the room")
 }

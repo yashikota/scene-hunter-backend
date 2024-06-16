@@ -38,5 +38,5 @@ func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 	// DEBUG: Print the room ID
 	log.Println("Room ID:", roomID)
 
-	util.SuccessJsonResponse(w, http.StatusOK, "successfully joined the room")
+	util.SuccessJsonResponse(w, http.StatusOK, "message", "successfully joined the room")
 }
