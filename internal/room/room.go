@@ -115,6 +115,15 @@ func ChangeGameMaster(roomID string, userID string) error {
 	return nil
 }
 
+func AddRoomUserPhoto(roomID string, userID string, photoURL string) error {
+	err := client.JSONArrAppend(ctx, roomID, fmt.Sprintf("$.users.%s.photo", userID), fmt.Sprintf("\"%s\"", photoURL)).Err()
+	if err != nil {
+		return fmt.Errorf("failed to add the photo to the user")
+	}
+
+	return nil
+}
+
 func DeleteRoomUser(roomID string, userID string) error {
 	err := client.JSONDel(ctx, roomID, fmt.Sprintf("$.users.%s", userID)).Err()
 	if err != nil {

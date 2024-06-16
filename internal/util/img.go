@@ -2,26 +2,35 @@ package util
 
 import (
 	"bytes"
+	"fmt"
 	"image"
-	_ "image/jpeg"
-	_ "image/png"
-	"io"
+	"image/jpeg"
+	"image/png"
 
 	"github.com/gen2brain/avif"
-	_ "github.com/gen2brain/heic"
 	"golang.org/x/image/draw"
-	_ "golang.org/x/image/webp"
 )
 
 // Readable image formats
 // jpeg, png, webp, heic
-func LoadImage(r io.Reader) (image.Image, string, error) {
-	img, format, err := image.Decode(r)
-	if err != nil {
-		return nil, "", err
+func LoadImage(data []byte, fileType string) (image.Image, error) {
+	var img image.Image
+	var err error
+
+	switch fileType {
+	case "image/jpeg":
+		img, err = jpeg.Decode(bytes.NewReader(data))
+	case "image/png":
+		img, err = png.Decode(bytes.NewReader(data))
+	default:
+		err = fmt.Errorf("unsupported file type")
 	}
 
-	return img, format, nil
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode the image: %w", err)
+	}
+
+	return img, nil
 }
 
 // Aspect ratio preserving image resizing
@@ -45,14 +54,14 @@ func Resize(img image.Image, maxHeight int) image.Image {
 	return dst
 }
 
-func ConvertToAVIF(img image.Image) (*bytes.Buffer, error) {
+func ConvertToAVIF(img image.Image) ([]byte, error) {
 	quality := 30
 
 	buf := new(bytes.Buffer)
 	err := avif.Encode(buf, img, avif.Options{Quality: quality})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to encode the image to AVIF: %w", err)
 	}
 
-	return buf, nil
+	return buf.Bytes(), nil
 }

@@ -2,14 +2,13 @@ package util
 
 import (
 	"bytes"
+	"fmt"
 	"io"
-	"log"
-	"mime/multipart"
 	"net/http"
 	"os"
 	"path/filepath"
 
-	"github.com/google/uuid"
+	"github.com/oklog/ulid/v2"
 )
 
 func MakeDir(dirName string) error {
@@ -17,7 +16,7 @@ func MakeDir(dirName string) error {
 	if _, err := os.Stat(dirName); os.IsNotExist(err) {
 		err := os.MkdirAll(dirName, 0755)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to create the directory: %w", err)
 		}
 	}
 
@@ -34,42 +33,43 @@ func DeleteDir(dirName string) error {
 	return nil
 }
 
-func SaveImage(buf *bytes.Buffer, dirName string, fileExtension string) (string, error) {
-	fileName := uuid.New().String()
-	fileName += fileExtension
-
-	path := filepath.Join(dirName, fileName)
-
-	err := saveFile(buf, path)
+func SaveFile(data []byte, path string, extension string) (string, error) {
+	// Generate a unique file name
+	ulid, err := ulid.New(ulid.Now(), nil)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to generate the unique file name: %w", err)
+	}
+	fileName := ulid.String()
+	fileName += extension
+
+	// Save the file
+	file, err := os.Create(filepath.Join(path, fileName))
+	if err != nil {
+		return "", fmt.Errorf("failed to save the file: %w", err)
+	}
+	defer file.Close()
+
+	_, err = io.Copy(file, bytes.NewReader(data))
+	if err != nil {
+		return "", fmt.Errorf("failed to save the file: %w", err)
 	}
 
 	return fileName, nil
 }
 
-func saveFile(buf *bytes.Buffer, path string) error {
-	file, err := os.Create(path)
+func ToBytes(r *http.Request) ([]byte, error) {
+	file, _, err := r.FormFile("image")
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("failed to read the form file")
 	}
 	defer file.Close()
 
-	_, err = io.Copy(file, buf)
+	// Read the form file
+	buf := new(bytes.Buffer)
+	_, err = io.Copy(buf, file)
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("failed to read the form file")
 	}
 
-	return nil
-}
-
-func GetFileHeaders(r *http.Request) ([]*multipart.FileHeader, error) {
-	const maxFileSize = 10 * 1024 * 1024 // 10MB
-
-	err := r.ParseMultipartForm(maxFileSize)
-	if err != nil {
-		return nil, err
-	}
-
-	return r.MultipartForm.File["image"], nil
+	return buf.Bytes(), nil
 }

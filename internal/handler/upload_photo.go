@@ -3,115 +3,112 @@ package handler
 import (
 	"fmt"
 	"log"
-	"mime/multipart"
 	"net/http"
 	"path/filepath"
-	"sync"
 
 	"github.com/yashikota/scene-hunter-backend/internal/room"
 	"github.com/yashikota/scene-hunter-backend/internal/util"
 )
 
 func UploadPhotoHandler(w http.ResponseWriter, r *http.Request) {
-	const uploadDir = "uploads"
-	const maxConcurrentWorkers = 5
-
-	user, err := util.ParseAndValidateUser(r, 100)
+	err := r.ParseMultipartForm(1024)
 	if err != nil {
 		util.ErrorJsonResponse(w, http.StatusBadRequest, err)
 		return
 	}
-	log.Printf("User ID: %s", user.ID)
+	userID := r.FormValue("user_id")
 
 	// Check if the room exists
 	roomID := r.URL.Query().Get("room_id")
-	_, err = room.CheckExistRoom(roomID)
-	if err != nil {
-		util.ErrorJsonResponse(w, http.StatusNotFound, err)
+	if roomID == "" {
+		util.ErrorJsonResponse(w, http.StatusBadRequest, fmt.Errorf("room_id is required"))
 		return
 	}
 
-	// Create RoomID directory
-	err = util.MakeDir(uploadDir)
+	// Check if the room exists
+	_, err = room.CheckExistRoom(roomID)
 	if err != nil {
 		util.ErrorJsonResponse(w, http.StatusInternalServerError, err)
 		return
 	}
-	roomDirPath := filepath.Join(uploadDir, roomID)
 
-	fileHeaders, err := util.GetFileHeaders(r)
+	// Create directory
+	originalPhotoUploadDir := filepath.Join("uploads", roomID, "original")
+	err = util.MakeDir(originalPhotoUploadDir)
+	if err != nil {
+		util.ErrorJsonResponse(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	convertedPhotoUploadDir := filepath.Join("uploads", roomID, "converted")
+	err = util.MakeDir(convertedPhotoUploadDir)
+	if err != nil {
+		util.ErrorJsonResponse(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	// Validate Max File Size
+	err = util.ValidateMaxFileSize(r)
 	if err != nil {
 		util.ErrorJsonResponse(w, http.StatusBadRequest, err)
 		return
 	}
 
-	jobs, results := make(chan *multipart.FileHeader, len(fileHeaders)), make(chan string, len(fileHeaders))
-	var wg sync.WaitGroup
-
-	for i := 0; i < maxConcurrentWorkers; i++ {
-		wg.Add(1)
-		go worker(jobs, results, roomDirPath, &wg)
+	// Validate File Type
+	fileType, err := util.ValidateFileType(r)
+	if err != nil {
+		util.ErrorJsonResponse(w, http.StatusBadRequest, err)
+		return
 	}
 
-	for _, fileHeader := range fileHeaders {
-		if err := util.ValidateFile(fileHeader); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+	// multipart.File to bytes.Buffer
+	img, err := util.ToBytes(r)
+	if err != nil {
+		util.ErrorJsonResponse(w, http.StatusBadRequest, err)
+		return
+	}
+
+	// Read the form file
+	fileName, err := util.SaveFile(img, originalPhotoUploadDir, ".jpg")
+	if err != nil {
+		util.ErrorJsonResponse(w, http.StatusBadRequest, err)
+		return
+	}
+
+	// DEBUG: Print the form data
+	log.Printf("uploadDir: %s, fileName: %s", originalPhotoUploadDir, fileName)
+
+	// Asynchronously process the file and immediately return a response to the client
+	go func() {
+		img, err := util.LoadImage(img, fileType)
+		if err != nil {
+			util.ErrorJsonResponse(w, http.StatusInternalServerError, err)
 			return
 		}
-		jobs <- fileHeader
-	}
 
-	close(jobs)
-	wg.Wait()
-	close(results)
+		img = util.Resize(img, 720)
 
-	writeResults(w, results)
-}
+		buf, err := util.ConvertToAVIF(img)
+		if err != nil {
+			util.ErrorJsonResponse(w, http.StatusInternalServerError, err)
+			return
+		}
 
-func writeResults(w http.ResponseWriter, results <-chan string) {
-	for url := range results {
-		w.Write([]byte(url + "\n"))
-	}
-}
+		fileName, err := util.SaveFile(buf, convertedPhotoUploadDir, ".avif")
+		if err != nil {
+			util.ErrorJsonResponse(w, http.StatusInternalServerError, err)
+			return
+		}
 
-func worker(jobs <-chan *multipart.FileHeader, results chan<- string, roomDirPath string, wg *sync.WaitGroup) {
-	defer wg.Done()
-	for fileHeader := range jobs {
-		processFile(fileHeader, results, roomDirPath)
-	}
-}
+		imagePath := fmt.Sprintf("%s/%s", convertedPhotoUploadDir, fileName)
+		log.Printf("imagePath: %s", imagePath)
 
-func processFile(fileHeader *multipart.FileHeader, results chan<- string, roomDirPath string) {
-	file, err := fileHeader.Open()
-	if err != nil {
-		log.Printf("Error opening file: %v", err)
-		return
-	}
-	defer file.Close()
+		err = room.AddRoomUserPhoto(roomID, userID, imagePath)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+	}()
 
-	img, format, err := util.LoadImage(file)
-	if err != nil {
-		log.Printf("Error decoding image: %v", err)
-		return
-	}
-
-	log.Printf("file name: %s, format: %s", fileHeader.Filename, format)
-
-	img = util.Resize(img, 720)
-
-	buf, err := util.ConvertToAVIF(img)
-	if err != nil {
-		log.Printf("Error converting to AVIF: %v", err)
-		return
-	}
-
-	fileExtension := ".avif"
-	fileName, err := util.SaveImage(buf, roomDirPath, fileExtension)
-	if err != nil {
-		log.Printf("Error saving file: %v", err)
-		return
-	}
-
-	url := fmt.Sprintf("http://%s/%s/%s", "localhost:8080", roomDirPath, fileName)
-	results <- url
+	util.SuccessJsonResponse(w, http.StatusOK, "message", "photo uploaded successfully")
 }

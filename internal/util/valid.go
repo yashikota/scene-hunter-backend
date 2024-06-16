@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"mime/multipart"
 	"net/http"
 
 	"github.com/yashikota/scene-hunter-backend/model"
@@ -48,34 +47,36 @@ func ParseAndValidateUser(r *http.Request, checkFlag int) (model.User, error) {
 	return user, nil
 }
 
-func ParseAndValidateRoom(r *http.Request) (string, error) {
-	roomID := r.URL.Query().Get("room_id")
-	if roomID == "" {
-		return "", fmt.Errorf("room id is required")
-	}
-
-	// DEBUG: Print the form data
-	log.Println("Room ID:", roomID)
-
-	return roomID, nil
-}
-
-// Load Image decodes the image and returns the image, format, and error
-func ValidateFile(fileHeader *multipart.FileHeader) error {
+func ValidateMaxFileSize(r *http.Request) error {
 	const maxFileSize = 10 * 1024 * 1024 // 10MB
-	var allowedTypes []string = []string{"image/jpeg", "image/png"}
 
-	if fileHeader.Size > maxFileSize {
+	r.Body = http.MaxBytesReader(nil, r.Body, maxFileSize)
+	if err := r.ParseMultipartForm(maxFileSize); err != nil {
 		return fmt.Errorf("file size exceeds the limit")
 	}
 
-	detectedType := http.DetectContentType([]byte(fileHeader.Header.Get("Content-Type")))
-	log.Println("Detected file type:", detectedType)
-	for _, allowedType := range allowedTypes {
-		if detectedType == allowedType {
-			return nil
-		}
+	return nil
+}
+
+func ValidateFileType(r *http.Request) (string, error) {
+	file, _, err := r.FormFile("image")
+	if err != nil {
+		return "", fmt.Errorf("failed to read the form file")
+	}
+	defer file.Close()
+
+	// Validate the file type
+	buff := make([]byte, 512)
+	_, err = file.Read(buff)
+	if err != nil {
+		return "", fmt.Errorf("failed to read the form file")
 	}
 
-	return fmt.Errorf("invalid file type")
+	// Check the file type. jpeg or png
+	fileType := http.DetectContentType(buff)
+	if fileType != "image/jpeg" && fileType != "image/png" {
+		return "", fmt.Errorf("invalid file type")
+	}
+
+	return fileType, nil
 }
