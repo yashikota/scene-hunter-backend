@@ -2,7 +2,6 @@ package util
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"mime/multipart"
@@ -15,7 +14,7 @@ func ParseAndValidateUser(r *http.Request, checkFlag int) (model.User, error) {
 	user := model.User{}
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
-		return user, err
+		return user, fmt.Errorf("failed to parse the request body")
 	}
 
 	const (
@@ -25,13 +24,13 @@ func ParseAndValidateUser(r *http.Request, checkFlag int) (model.User, error) {
 	)
 
 	if checkFlag&flagID != 0 && user.ID == "" {
-		return user, errors.New("id is required")
+		return user, fmt.Errorf("id is required")
 	}
 	if checkFlag&flagName != 0 && user.Name == "" {
-		return user, errors.New("name is required")
+		return user, fmt.Errorf("name is required")
 	}
 	if checkFlag&flagLang != 0 && user.Lang == "" {
-		return user, errors.New("lang is required")
+		return user, fmt.Errorf("language is required")
 	}
 
 	// Validate UserID
@@ -40,7 +39,7 @@ func ParseAndValidateUser(r *http.Request, checkFlag int) (model.User, error) {
 		return user, err
 	}
 	if !exist {
-		return user, errors.New("invalid user ID")
+		return user, fmt.Errorf("invalid user ID")
 	}
 
 	// DEBUG: Print the form data
@@ -49,10 +48,22 @@ func ParseAndValidateUser(r *http.Request, checkFlag int) (model.User, error) {
 	return user, nil
 }
 
+func ParseAndValidateRoom(r *http.Request) (string, error) {
+	roomID := r.URL.Query().Get("room_id")
+	if roomID == "" {
+		return "", fmt.Errorf("room id is required")
+	}
+
+	// DEBUG: Print the form data
+	log.Println("Room ID:", roomID)
+
+	return roomID, nil
+}
+
 // Load Image decodes the image and returns the image, format, and error
 func ValidateFile(fileHeader *multipart.FileHeader) error {
 	const maxFileSize = 10 * 1024 * 1024 // 10MB
-	var allowedTypes []string = []string{"image/jpeg", "image/jpg", "image/png"}
+	var allowedTypes []string = []string{"image/jpeg", "image/png"}
 
 	if fileHeader.Size > maxFileSize {
 		return fmt.Errorf("file size exceeds the limit")

@@ -15,30 +15,25 @@ func GenerateUserIDHandler(w http.ResponseWriter, r *http.Request) {
 
 	userID, err := util.GenerateUserID(ttl)
 	if err != nil {
-		util.JsonResponse(w, http.StatusInternalServerError, "Failed to generate user ID")
+		util.ErrorJsonResponse(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	util.JsonResponse(w, http.StatusOK, userID)
+	util.SuccessJsonResponse(w, http.StatusOK, userID)
 }
 
 func ExistUserIDHandler(w http.ResponseWriter, r *http.Request) {
-	userID := r.URL.Query().Get("user_id")
-	if userID == "" {
-		util.JsonResponse(w, http.StatusBadRequest, "user_id is required")
-		return
-	}
-
-	exist, err := util.ExistUserID(userID)
+	user, err := util.ParseAndValidateUser(r, 100) // Validate ID
 	if err != nil {
-		util.JsonResponse(w, http.StatusInternalServerError, "Failed to check user ID")
+		util.ErrorJsonResponse(w, http.StatusBadRequest, err)
 		return
 	}
 
-	if !exist {
-		util.JsonResponse(w, http.StatusNotFound, "User ID does not exist")
+	_, err = util.ExistUserID(user.ID)
+	if err != nil {
+		util.ErrorJsonResponse(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	util.JsonResponse(w, http.StatusOK, "User ID exists")
+	util.SuccessJsonResponse(w, http.StatusOK, "user ID exists")
 }

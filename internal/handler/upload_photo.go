@@ -18,30 +18,30 @@ func UploadPhotoHandler(w http.ResponseWriter, r *http.Request) {
 
 	user, err := util.ParseAndValidateUser(r, 100)
 	if err != nil {
-		util.JsonResponse(w, http.StatusBadRequest, err.Error())
+		util.ErrorJsonResponse(w, http.StatusBadRequest, err)
 		return
 	}
 	log.Printf("User ID: %s", user.ID)
 
 	// Check if the room exists
 	roomID := r.URL.Query().Get("room_id")
-	exist := room.CheckExistRoom(roomID)
-	if !exist {
-		util.JsonResponse(w, http.StatusNotFound, "Room does not exist")
+	_, err = room.CheckExistRoom(roomID)
+	if err != nil {
+		util.ErrorJsonResponse(w, http.StatusNotFound, err)
 		return
 	}
 
 	// Create RoomID directory
 	err = util.MakeDir(uploadDir)
 	if err != nil {
-		util.JsonResponse(w, http.StatusInternalServerError, err.Error())
+		util.ErrorJsonResponse(w, http.StatusInternalServerError, err)
 		return
 	}
 	roomDirPath := filepath.Join(uploadDir, roomID)
 
 	fileHeaders, err := util.GetFileHeaders(r)
 	if err != nil {
-		util.JsonResponse(w, http.StatusBadRequest, err.Error())
+		util.ErrorJsonResponse(w, http.StatusBadRequest, err)
 		return
 	}
 

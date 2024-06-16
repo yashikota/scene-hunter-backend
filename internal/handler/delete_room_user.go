@@ -10,41 +10,36 @@ import (
 func DeleteRoomUserHandler(w http.ResponseWriter, r *http.Request) {
 	user, err := util.ParseAndValidateUser(r, 100)
 	if err != nil {
-		util.JsonResponse(w, http.StatusBadRequest, err.Error())
+		util.ErrorJsonResponse(w, http.StatusBadRequest, err)
 		return
 	}
 
-	roomID := r.URL.Query().Get("room_id")
-	if roomID == "" {
-		util.JsonResponse(w, http.StatusBadRequest, "room_id is required")
+	roomID, err := util.ParseAndValidateRoom(r)
+	if err != nil {
+		util.ErrorJsonResponse(w, http.StatusBadRequest, err)
 		return
 	}
 
 	// Check if the room exists
-	exist := room.CheckExistRoom(roomID)
-	if !exist {
-		util.JsonResponse(w, http.StatusNotFound, "Room does not exist")
+	_, err = room.CheckExistRoom(roomID)
+	if err != nil {
+		util.ErrorJsonResponse(w, http.StatusNotFound, err)
 		return
 	}
 
 	// Check if the user exists
-	exist, err = room.CheckExistUser(roomID, user.ID)
+	_, statusCode, err := room.CheckExistUser(roomID, user.ID)
 	if err != nil {
-		util.JsonResponse(w, http.StatusInternalServerError, "Failed to check if the user exists")
-		return
-	}
-
-	if !exist {
-		util.JsonResponse(w, http.StatusNotFound, "User does not exist")
+		util.ErrorJsonResponse(w, statusCode, err)
 		return
 	}
 
 	// Delete the user from the room
 	err = room.DeleteRoomUser(roomID, user.ID)
 	if err != nil {
-		util.JsonResponse(w, http.StatusInternalServerError, "Failed to delete user from the room")
+		util.ErrorJsonResponse(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	util.JsonResponse(w, http.StatusOK, "Successfully deleted the user from the room")
+	util.SuccessJsonResponse(w, http.StatusOK, "deleted the user from the room")
 }

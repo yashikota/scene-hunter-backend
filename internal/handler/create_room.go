@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -10,9 +10,9 @@ import (
 )
 
 func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
-	user, err := util.ParseAndValidateUser(r, 111)
+	user, err := util.ParseAndValidateUser(r, 111) // Validate ID, Name, and Language
 	if err != nil {
-		util.JsonResponse(w, http.StatusBadRequest, err.Error())
+		util.ErrorJsonResponse(w, http.StatusBadRequest, err)
 		return
 	}
 
@@ -22,19 +22,19 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 		digits := 6
 		roomID, err = util.GenerateRoomID(digits, user.ID)
 		if err != nil {
-			util.JsonResponse(w, http.StatusInternalServerError, "Failed to generate room ID")
+			util.ErrorJsonResponse(w, http.StatusInternalServerError, err)
 			return
 		}
 
 		// Check if the room already exists
-		exist := room.CheckExistRoom(roomID)
-		if !exist {
+		exist, _ := room.CheckExistRoom(roomID)
+		if !exist { // if not exists
 			break
 		}
 
 		// if 10 times looped, return error
 		if i == 9 {
-			util.JsonResponse(w, http.StatusInternalServerError, "Failed to generate room ID (10 times looped)")
+			util.ErrorJsonResponse(w, http.StatusInternalServerError, fmt.Errorf("failed to generate room ID"))
 			return
 		}
 	}
@@ -45,18 +45,9 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 	// Create a room
 	err = room.CreateRoom(roomID, user)
 	if err != nil {
-		util.JsonResponse(w, http.StatusInternalServerError, "Failed to creation room")
+		util.ErrorJsonResponse(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	// response
-	res := struct {
-		RoomID  string `json:"room_id,omitempty"`
-		Message string `json:"message"`
-	}{
-		RoomID:  roomID,
-		Message: "Room created successfully",
-	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(res)
+	util.SuccessJsonResponse(w, http.StatusCreated, roomID)
 }

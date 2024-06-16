@@ -8,9 +8,6 @@ import (
 )
 
 func GenerateRoomID(digits int, id string) (string, error) {
-	// DEBUG: Fixed room ID
-	// return "123456", nil
-
 	// Validate the number of digits
 	if digits < 1 || digits > 10 {
 		return "", fmt.Errorf("digits must be between 1 and 10")

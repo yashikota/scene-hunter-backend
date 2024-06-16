@@ -1,6 +1,7 @@
 package util
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/oklog/ulid/v2"
@@ -14,7 +15,7 @@ func GenerateUserID(ttl int) (string, error) {
 	// Set TTL
 	err := setUserID(id.String(), ttl)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to set TTL for UserID: %w", err)
 	}
 
 	return id.String(), nil
@@ -26,7 +27,7 @@ func setUserID(userID string, ttl int) error {
 
 	_, err := client.HSet(ctx, "UserID", userID, expire).Result()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to set UserID: %w", err)
 	}
 
 	return nil
@@ -35,14 +36,14 @@ func setUserID(userID string, ttl int) error {
 func ExistUserID(userID string) (bool, error) {
 	result, err := client.HExists(ctx, "UserID", userID).Result()
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("failed to check UserID: %w", err)
 	}
 
 	// Check TTL
 	if result {
 		expire, err := client.HGet(ctx, "UserID", userID).Int64()
 		if err != nil {
-			return false, err
+			return false, fmt.Errorf("failed to get TTL for UserID: %w", err)
 		}
 
 		now := time.Now().Unix()
@@ -52,5 +53,5 @@ func ExistUserID(userID string) (bool, error) {
 		}
 	}
 
-	return result, nil
+	return true, nil
 }

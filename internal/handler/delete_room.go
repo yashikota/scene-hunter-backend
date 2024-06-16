@@ -9,28 +9,28 @@ import (
 )
 
 func DeleteRoomHandler(w http.ResponseWriter, r *http.Request) {
-	roomID := r.URL.Query().Get("room_id")
-	if roomID == "" {
-		util.JsonResponse(w, http.StatusBadRequest, "room_id is required")
+	roomID, err := util.ParseAndValidateRoom(r)
+	if err != nil {
+		util.ErrorJsonResponse(w, http.StatusBadRequest, err)
 		return
 	}
 
 	// Check if the room exists
-	exist := room.CheckExistRoom(roomID)
-	if !exist {
-		util.JsonResponse(w, http.StatusNotFound, "Room does not exist")
+	_, err = room.CheckExistRoom(roomID)
+	if err != nil {
+		util.ErrorJsonResponse(w, http.StatusNotFound, err)
 		return
 	}
 
 	// Delete the room
-	err := room.DeleteRoom(roomID)
+	err = room.DeleteRoom(roomID)
 	if err != nil {
-		util.JsonResponse(w, http.StatusInternalServerError, "Failed to delete room")
+		util.ErrorJsonResponse(w, http.StatusInternalServerError, err)
 		return
 	}
 
 	// DEBUG: Print the room ID
 	log.Println("Room ID:", roomID)
 
-	util.JsonResponse(w, http.StatusOK, "Successfully deleted the room")
+	util.SuccessJsonResponse(w, http.StatusOK, "successfully deleted the room")
 }
