@@ -15,6 +15,7 @@ func CreateRoom(roomID string, user model.User) error {
 	newRoom := model.Room{
 		GameMasterID: user.ID,
 		TotalPlayers: 0,
+		GameRounds:   3,
 		Users: map[string]model.User{
 			user.ID: {
 				ID:     user.ID,

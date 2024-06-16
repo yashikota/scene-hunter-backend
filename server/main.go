@@ -11,17 +11,23 @@ import (
 func main() {
 	mux := http.NewServeMux()
 
-	// API
+	// User ID
 	mux.HandleFunc("GET /api/generate_user_id", handler.GenerateUserIDHandler)
-	mux.HandleFunc("GET /api/exist_user_id", handler.ExistUserIDHandler)
+	mux.HandleFunc("POST /api/exist_user_id", handler.ExistUserIDHandler)
+
+	// Room
 	mux.HandleFunc("POST /api/create_room", handler.CreateRoomHandler)
 	mux.HandleFunc("POST /api/join_room", handler.JoinRoomHandler)
-	mux.HandleFunc("DELETE /api/delete_room", handler.DeleteRoomHandler)
 	mux.HandleFunc("GET /api/get_room_users", handler.GetRoomUsersHandler)
+	mux.HandleFunc("PUT /api/change_game_master", handler.ChangeGameMasterHandler)
 	mux.HandleFunc("DELETE /api/delete_room_user", handler.DeleteRoomUserHandler)
+	mux.HandleFunc("DELETE /api/delete_room", handler.DeleteRoomHandler)
+
+	// Game
 	mux.HandleFunc("POST /api/upload_photo", handler.UploadPhotoHandler)
 	mux.HandleFunc("GET /api/result", handler.ResultHandler)
-	mux.HandleFunc("PUT /api/change_game_master", handler.ChangeGameMasterHandler)
+
+	// Debug
 	mux.HandleFunc("GET /api/ping", handler.PingHandler)
 
 	// Swagger UI

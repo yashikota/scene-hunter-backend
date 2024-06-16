@@ -1,39 +1,55 @@
 openapi: 3.0.3
 info:
-  title: Game Room API
+  title: Scene Hunter API
   description: Scene HunterのAPI定義書
   version: 0.1.0
 servers:
-  - url: https://sh.yashikota.com
-    port: 8080
+  - url: http://{host}:{port}/api
+    description: dev
+    variables:
+      host:
+        default: localhost
+      port:
+        default: '8080'
+tags:
+  - name: id
+    description: ユーザーIDに関するAPI
+  - name: room
+    description: 部屋に関するAPI
 paths:
-  /api/generate_user_id:
+  /generate_user_id:
     get:
-      summary: Generate a new user ID
+      tags:
+        - id
+      summary: ユーザーIDを生成する
+      parameters:
+        - name: ttl
+          in: query
+          description: ユーザーIDの有効期限(秒)。デフォルトは86400秒(1日)
+          required: false
+          schema:
+            type: integer
       responses:
         '200':
-          description: Successfully generated a new user ID
+          description: 成功
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  id:
-                    type: string
+                type: string
+                example: '01GR6FXNBHTQSAF7CZBVNP48NX'
         '500':
-          description: Internal server error
+          description: 内部サーバーエラー
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-
-  /api/create_room:
+                $ref: '#/components/schemas/Error'
+  /exist_user_id:
     post:
-      summary: Create a new room
+      tags:
+        - id
+      summary: ユーザーIDが存在するかチェックする
       requestBody:
+        required: true
         content:
           application/json:
             schema:
@@ -41,573 +57,207 @@ paths:
               properties:
                 id:
                   type: string
-                name:
-                  type: string
-                lang:
-                  type: string
               required:
                 - id
-                - name
-                - lang
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: string
+                example: 'user ID exists'
+        '400':
+          description: 不正なユーザーID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 内部サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /create_room:
+    post:
+      tags:
+        - room
+      summary: 新しい部屋を作成する
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserInfo'
       responses:
         '201':
-          description: Room created successfully
+          description: 成功
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  room_id:
-                    type: integer
-                  message:
-                    type: string
+                type: string
+                example: {"room id": '123456'}
         '400':
-          description: Bad request
+          description: 不正なリクエスト
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
+                $ref: '#/components/schemas/Error'
         '500':
-          description: Internal server error
+          description: 内部サーバーエラー
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-
-  /api/join_room:
+                $ref: '#/components/schemas/Error'
+  /join_room:
     post:
-      summary: Join an existing room
+      tags:
+        - room
+      summary: 既存の部屋に参加する
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserInfo'
       parameters:
         - name: room_id
           in: query
           required: true
           schema:
-            type: integer
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                id:
-                  type: string
-                name:
-                  type: string
-                lang:
-                  type: string
-              required:
-                - id
-                - name
-                - lang
+            type: string
       responses:
         '200':
-          description: Successfully joined the room
+          description: 成功
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
+                type: string
+                example: 'successfully joined the room'
         '400':
-          description: Bad request
+          description: 不正なリクエスト
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
+                $ref: '#/components/schemas/Error'
         '404':
-          description: Room not found
+          description: 部屋が見つからない
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
+                $ref: '#/components/schemas/Error'
         '500':
-          description: Internal server error
+          description: 内部サーバーエラー
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-
-  /api/update_rounds:
+                $ref: '#/components/schemas/Error'
+  /get_room_users:
+    get:
+      tags:
+        - room
+      summary: 部屋に参加しているユーザー一覧を取得する
+      parameters:
+        - name: room_id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RoomInfo'
+        '400':
+          description: 不正なリクエスト
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 内部サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /change_game_master:
     put:
-      summary: Update the number of rounds
-      parameters:
-        - name: room_id
-          in: query
-          required: true
-          schema:
-            type: integer
+      tags:
+        - room
+      summary: ゲームマスターを変更する
       requestBody:
+        required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                rounds:
-                  type: integer
-              required:
-                - rounds
-      responses:
-        '200':
-          description: Successfully updated rounds
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-
-  /api/room_status:
-    get:
-      summary: Get the status of a room
+              $ref: '#/components/schemas/UserInfo'
       parameters:
         - name: room_id
           in: query
           required: true
           schema:
-            type: integer
+            type: string
       responses:
         '200':
-          description: Successfully retrieved room status
+          description: 成功
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                  current_round:
-                    type: integer
+                type: string
+                example: '新しいゲームマスターのユーザーID'
         '400':
-          description: Bad request
+          description: 不正なリクエスト
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
+                $ref: '#/components/schemas/Error'
         '404':
-          description: Room not found
+          description: 部屋がみつからないまたはユーザーが部屋に存在しない
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
+                $ref: '#/components/schemas/Error'
         '500':
-          description: Internal server error
+          description: 内部サーバーエラー
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-
-  /api/players:
-    get:
-      summary: Get the list of players in a room
-      parameters:
-        - name: room_id
-          in: query
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Successfully retrieved players list
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  game_master:
-                    type: object
-                    properties:
-                      id:
-                        type: string
-                      name:
-                        type: string
-                  players:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: string
-                        name:
-                          type: string
-                  total_players:
-                    type: integer
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-        '404':
-          description: Room not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-
-  /api/start_game:
-    post:
-      summary: Start the game in a room
-      parameters:
-        - name: room_id
-          in: query
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                id:
-                  type: string
-              required:
-                - id
-      responses:
-        '200':
-          description: Game started successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  status:
-                    type: string
-                  current_round:
-                    type: integer
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-        '403':
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-        '404':
-          description: Room not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-
-  /api/upload_photo:
-    post:
-      summary: Upload a photo
-      parameters:
-        - name: room_id
-          in: query
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                id:
-                  type: string
-                photo:
-                  type: string
-                  format: binary
-              required:
-                - id
-                - photo
-      responses:
-        '200':
-          description: Photo uploaded successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-
-  /api/gm_photo_description:
-    get:
-      summary: Get the description of the game master's photo
-      parameters:
-        - name: room_id
-          in: query
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Successfully retrieved photo description
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  photo_description:
-                    type: array
-                    items:
-                      type: string
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-        '404':
-          description: Room or Game Master photo not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-
-  /api/completed_uploads:
-    get:
-      summary: Get the number of members who completed the photo upload
-      parameters:
-        - name: room_id
-          in: query
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Successfully retrieved completed uploads count
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  completed_uploads:
-                    type: integer
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-        '404':
-          description: Room not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-
-  /api/result:
-    get:
-      summary: Get all photos and scores
-      parameters:
-        - name: room_id
-          in: query
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Successfully retrieved results
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  game_master:
-                    type: object
-                    properties:
-                      id:
-                        type: string
-                      photo_data:
-                        type: string
-                  players:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: string
-                        score:
-                          type: array
-                          items:
-                            type: number
-                            format: float
-                        photo_data:
-                          type: array
-                          items:
-                            type: string
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-        '404':
-          description: Room not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-
-  /api/ping:
-    get:
-      summary: ping
-      responses:
-        '200':
-          description: pong
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    UserInfo:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        lang:
+          type: string
+      required:
+        - id
+        - name
+        - lang
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+    RoomInfo:
+      type: object
+      properties:
+        game_master_id:
+          type: string
+        total_players:
+          type: integer
+        game_rounds:
+          type: integer
+        users:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/UserInfo'
