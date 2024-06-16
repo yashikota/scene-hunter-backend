@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/yashikota/scene-hunter-backend/internal/room"
@@ -14,12 +15,20 @@ func ChangeGameMasterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get and validate the room ID
-	roomID, err := util.ParseAndValidateRoom(r)
-	if err != nil {
-		util.ErrorJsonResponse(w, http.StatusBadRequest, err)
+	// Check if the room exists
+	roomID := r.URL.Query().Get("room_id")
+	if roomID == "" {
+		util.ErrorJsonResponse(w, http.StatusBadRequest, fmt.Errorf("room_id is required"))
 		return
 	}
+
+	// Check if the room exists
+	_, err = room.CheckExistRoom(roomID)
+	if err != nil {
+		util.ErrorJsonResponse(w, http.StatusInternalServerError, err)
+		return
+	}
+
 
 	// Check if the room exists
 	_, err = room.CheckExistRoom(roomID)

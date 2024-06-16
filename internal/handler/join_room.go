@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -16,11 +17,19 @@ func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if the room exists
-	roomID, err := util.ParseAndValidateRoom(r)
-	if err != nil {
-		util.ErrorJsonResponse(w, http.StatusBadRequest, err)
+	roomID := r.URL.Query().Get("room_id")
+	if roomID == "" {
+		util.ErrorJsonResponse(w, http.StatusBadRequest, fmt.Errorf("room_id is required"))
 		return
 	}
+
+	// Check if the room exists
+	_, err = room.CheckExistRoom(roomID)
+	if err != nil {
+		util.ErrorJsonResponse(w, http.StatusInternalServerError, err)
+		return
+	}
+
 
 	_, err = room.CheckExistRoom(roomID)
 	if err != nil {
