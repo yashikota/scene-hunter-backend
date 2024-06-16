@@ -29,7 +29,6 @@ func ChangeGameMasterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
 	// Check if the room exists
 	_, err = room.CheckExistRoom(roomID)
 	if err != nil {

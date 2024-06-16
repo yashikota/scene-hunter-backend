@@ -23,7 +23,6 @@ func GetRoomUsersHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
 	// Get users in the room
 	users, err := room.GetRoomUsers(roomID)
 	if err != nil {

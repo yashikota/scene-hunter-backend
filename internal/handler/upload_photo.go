@@ -16,7 +16,23 @@ func UploadPhotoHandler(w http.ResponseWriter, r *http.Request) {
 		util.ErrorJsonResponse(w, http.StatusBadRequest, err)
 		return
 	}
+
+	// Parse and validate the user
 	userID := r.FormValue("user_id")
+	if userID == "" {
+		util.ErrorJsonResponse(w, http.StatusBadRequest, fmt.Errorf("user_id is required"))
+		return
+	}
+	// Validate UserID
+	exist, err := util.ExistUserID(userID)
+	if err != nil {
+		util.ErrorJsonResponse(w, http.StatusInternalServerError, err)
+		return
+	}
+	if !exist {
+		util.ErrorJsonResponse(w, http.StatusBadRequest, fmt.Errorf("invalid user ID"))
+		return
+	}
 
 	// Check if the room exists
 	roomID := r.URL.Query().Get("room_id")
@@ -103,7 +119,7 @@ func UploadPhotoHandler(w http.ResponseWriter, r *http.Request) {
 		imagePath := fmt.Sprintf("%s/%s", convertedPhotoUploadDir, fileName)
 		log.Printf("imagePath: %s", imagePath)
 
-		err = room.AddRoomUserPhoto(roomID, userID, imagePath)
+		err = room.AddRoomUserPhotoAndScore(roomID, userID, imagePath)
 		if err != nil {
 			log.Println(err)
 			return
