@@ -25,14 +25,17 @@ func main() {
 
 	// Game
 	mux.HandleFunc("POST /api/upload_photo", handler.UploadPhotoHandler)
-	mux.HandleFunc("GET /api/result", handler.ResultHandler)
+
+	// Photo Preview
+	photoServer := http.FileServer(http.Dir("./uploads"))
+	mux.Handle("/uploads/", http.StripPrefix("/uploads", photoServer))
 
 	// Debug
 	mux.HandleFunc("GET /api/ping", handler.PingHandler)
 
 	// Swagger UI
-	fileServer := http.FileServer(http.Dir("./swagger"))
-	mux.Handle("/swagger/", http.StripPrefix("/swagger", fileServer))
+	swaggerServer := http.FileServer(http.Dir("./swagger"))
+	mux.Handle("/swagger/", http.StripPrefix("/swagger", swaggerServer))
 
 	handler := cors.Default().Handler(mux)
 	log.Fatal(http.ListenAndServe(":8080", handler))

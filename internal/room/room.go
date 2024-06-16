@@ -18,12 +18,13 @@ func CreateRoom(roomID string, user model.User) error {
 		GameRounds:   3,
 		Users: map[string]model.User{
 			user.ID: {
-				ID:     user.ID,
-				Name:   user.Name,
-				Lang:   user.Lang,
-				Status: "active",
-				Score:  []float32{},
-				Photo:  []string{},
+				ID:              user.ID,
+				Name:            user.Name,
+				Lang:            user.Lang,
+				Status:          "active",
+				PhotoScoreIndex: 0,
+				Score:           map[int]float32{},
+				Photo:           map[int]string{},
 			},
 		},
 	}
@@ -47,8 +48,8 @@ func JoinRoom(roomID string, user model.User) error {
 		Name:   user.Name,
 		Lang:   user.Lang,
 		Status: "active",
-		Score:  []float32{},
-		Photo:  []string{},
+		Score:  map[int]float32{},
+		Photo:  map[int]string{},
 	}
 
 	playerJSON, err := json.Marshal(newPlayer)
@@ -115,10 +116,31 @@ func ChangeGameMaster(roomID string, userID string) error {
 	return nil
 }
 
-func AddRoomUserPhoto(roomID string, userID string, photoURL string) error {
-	err := client.JSONArrAppend(ctx, roomID, fmt.Sprintf("$.users.%s.photo", userID), fmt.Sprintf("\"%s\"", photoURL)).Err()
+func AddRoomUserPhotoAndScore(roomID string, userID string, photoURL string) error {
+	photoScoreIndex, err := client.JSONGet(ctx, roomID, fmt.Sprintf("$.users.%s.photo_score_index", userID)).Result()
 	if err != nil {
-		return fmt.Errorf("failed to add the photo to the user")
+		return fmt.Errorf("failed to get the player's score index")
+	}
+
+	// [N] to remove brackets
+	photoScoreIndex = photoScoreIndex[1 : len(photoScoreIndex)-1]
+
+	err = client.JSONSet(ctx, roomID, fmt.Sprintf("$.users.%s.photo.%s", userID, photoScoreIndex), fmt.Sprintf(
+		"\"%s\"", photoURL)).Err()
+	if err != nil {
+		return fmt.Errorf("failed to set the player's photo")
+	}
+
+	score := util.GenerateRandomScore()
+	err = client.JSONSet(ctx, roomID, fmt.Sprintf("$.users.%s.score.%s", userID, photoScoreIndex), fmt.Sprintf(
+		"%.4f", score)).Err()
+	if err != nil {
+		return fmt.Errorf("failed to set the player's score")
+	}
+
+	err = client.JSONNumIncrBy(ctx, roomID, fmt.Sprintf("$.users.%s.photo_score_index", userID), 1).Err()
+	if err != nil {
+		return fmt.Errorf("failed to increment the player's score index")
 	}
 
 	return nil

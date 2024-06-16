@@ -5,8 +5,9 @@ type User struct {
 	Name string `json:"name"`
 	Lang string `json:"lang"`
 	Status string `json:"status"`
-	Score []float32 `json:"score"`
-	Photo []string `json:"photo"`
+	PhotoScoreIndex int `json:"photo_score_index"`
+	Score map[int]float32 `json:"score"`
+	Photo map[int]string `json:"photo"`
 }
 
 type Room struct {
