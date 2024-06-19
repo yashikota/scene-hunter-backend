@@ -19,7 +19,7 @@ func main() {
 	mux.HandleFunc("POST /api/create_room", handler.CreateRoomHandler)
 	mux.HandleFunc("POST /api/join_room", handler.JoinRoomHandler)
 	mux.HandleFunc("GET /api/get_room_users", handler.GetRoomUsersHandler)
-	mux.HandleFunc("PUT /api/change_game_master", handler.ChangeGameMasterHandler)
+	mux.HandleFunc("PATCH /api/change_game_master", handler.ChangeGameMasterHandler)
 	mux.HandleFunc("DELETE /api/delete_room_user", handler.DeleteRoomUserHandler)
 	mux.HandleFunc("DELETE /api/delete_room", handler.DeleteRoomHandler)
 

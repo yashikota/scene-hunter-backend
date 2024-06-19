@@ -9,7 +9,7 @@ import (
 )
 
 func ChangeGameMasterHandler(w http.ResponseWriter, r *http.Request) {
-	user, err := util.ParseAndValidateUser(r, 100) // Validate ID
+	user, err := util.ParseAndValidateUser(r, 1000) // Validate ID
 	if err != nil {
 		util.ErrorJsonResponse(w, http.StatusBadRequest, err)
 		return
@@ -22,19 +22,16 @@ func ChangeGameMasterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check if the room exists
-	_, err = room.CheckExistRoom(roomID)
+	result, err := room.CheckExistRoom(roomID)
 	if err != nil {
 		util.ErrorJsonResponse(w, http.StatusInternalServerError, err)
 		return
 	}
-
-	// Check if the room exists
-	_, err = room.CheckExistRoom(roomID)
-	if err != nil {
+	if !result {
 		util.ErrorJsonResponse(w, http.StatusNotFound, err)
 		return
 	}
+
 
 	// Check if the user exists
 	_, statusCode, err := room.CheckExistUser(roomID, user.ID)

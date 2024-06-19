@@ -23,7 +23,7 @@ func GenerateUserIDHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func ExistUserIDHandler(w http.ResponseWriter, r *http.Request) {
-	user, err := util.ParseAndValidateUser(r, 100) // Validate ID
+	user, err := util.ParseAndValidateUser(r, 1000) // Validate ID
 	if err != nil {
 		util.ErrorJsonResponse(w, http.StatusBadRequest, err)
 		return

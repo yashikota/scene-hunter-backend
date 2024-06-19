@@ -17,9 +17,10 @@ func ParseAndValidateUser(r *http.Request, checkFlag int) (model.User, error) {
 	}
 
 	const (
-		flagID   = 0b100
-		flagName = 0b010
-		flagLang = 0b001
+		flagID   = 0b1000
+		flagName = 0b0100
+		flagLang = 0b0010
+		flagStatus = 0b0001
 	)
 
 	if checkFlag&flagID != 0 && user.ID == "" {
@@ -30,6 +31,9 @@ func ParseAndValidateUser(r *http.Request, checkFlag int) (model.User, error) {
 	}
 	if checkFlag&flagLang != 0 && user.Lang == "" {
 		return user, fmt.Errorf("language is required")
+	}
+	if checkFlag&flagStatus != 0 && user.Status == "" {
+		return user, fmt.Errorf("status is required")
 	}
 
 	// Validate UserID

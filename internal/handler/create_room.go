@@ -10,7 +10,7 @@ import (
 )
 
 func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
-	user, err := util.ParseAndValidateUser(r, 111) // Validate ID, Name, and Language
+	user, err := util.ParseAndValidateUser(r, 1110) // Validate ID, Name, and Language
 	if err != nil {
 		util.ErrorJsonResponse(w, http.StatusBadRequest, err)
 		return

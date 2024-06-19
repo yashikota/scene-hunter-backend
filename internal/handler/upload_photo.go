@@ -40,11 +40,14 @@ func UploadPhotoHandler(w http.ResponseWriter, r *http.Request) {
 		util.ErrorJsonResponse(w, http.StatusBadRequest, fmt.Errorf("room_id is required"))
 		return
 	}
-
-	// Check if the room exists
-	_, err = room.CheckExistRoom(roomID)
+	
+	result, err := room.CheckExistRoom(roomID)
 	if err != nil {
 		util.ErrorJsonResponse(w, http.StatusInternalServerError, err)
+		return
+	}
+	if !result {
+		util.ErrorJsonResponse(w, http.StatusNotFound, err)
 		return
 	}
 
