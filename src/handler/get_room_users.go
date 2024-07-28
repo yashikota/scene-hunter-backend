@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/yashikota/scene-hunter-backend/internal/room"
-	"github.com/yashikota/scene-hunter-backend/internal/util"
+	"github.com/yashikota/scene-hunter-backend/src/room"
+	"github.com/yashikota/scene-hunter-backend/src/util"
 )
 
 func GetRoomUsersHandler(w http.ResponseWriter, r *http.Request) {

@@ -7,7 +7,6 @@ import (
 	"image/jpeg"
 	"image/png"
 
-	"github.com/gen2brain/avif"
 	"golang.org/x/image/draw"
 )
 
@@ -54,14 +53,14 @@ func Resize(img image.Image, maxHeight int) image.Image {
 	return dst
 }
 
-func ConvertToAVIF(img image.Image) ([]byte, error) {
-	quality := 30
+// func ConvertToAVIF(img image.Image) ([]byte, error) {
+// 	quality := 30
 
-	buf := new(bytes.Buffer)
-	err := avif.Encode(buf, img, avif.Options{Quality: quality})
-	if err != nil {
-		return nil, fmt.Errorf("failed to encode the image to AVIF: %w", err)
-	}
+// 	buf := new(bytes.Buffer)
+// 	err := avif.Encode(buf, img, avif.Options{Quality: quality})
+// 	if err != nil {
+// 		return nil, fmt.Errorf("failed to encode the image to AVIF: %w", err)
+// 	}
 
-	return buf.Bytes(), nil
-}
+// 	return buf.Bytes(), nil
+// }

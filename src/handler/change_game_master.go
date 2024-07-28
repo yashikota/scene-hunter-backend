@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/yashikota/scene-hunter-backend/internal/room"
-	"github.com/yashikota/scene-hunter-backend/internal/util"
+	"github.com/yashikota/scene-hunter-backend/src/room"
+	"github.com/yashikota/scene-hunter-backend/src/util"
 )
 
 func ChangeGameMasterHandler(w http.ResponseWriter, r *http.Request) {
@@ -31,7 +31,6 @@ func ChangeGameMasterHandler(w http.ResponseWriter, r *http.Request) {
 		util.ErrorJsonResponse(w, http.StatusNotFound, err)
 		return
 	}
-
 
 	// Check if the user exists
 	_, statusCode, err := room.CheckExistUser(roomID, user.ID)

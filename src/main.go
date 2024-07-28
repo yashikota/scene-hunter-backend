@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/yashikota/scene-hunter-backend/internal/handler"
+	"github.com/yashikota/scene-hunter-backend/src/handler"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
