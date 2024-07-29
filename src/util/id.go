@@ -15,7 +15,7 @@ func GenerateUserID(ttl int) (string, error) {
 	// Set TTL
 	err := setUserID(id.String(), ttl)
 	if err != nil {
-		return "", fmt.Errorf("failed to set TTL for UserID: %w", err)
+		return "", fmt.Errorf("failed to set TTL for user id")
 	}
 
 	return id.String(), nil
@@ -27,7 +27,7 @@ func setUserID(userID string, ttl int) error {
 
 	_, err := client.HSet(ctx, "UserID", userID, expire).Result()
 	if err != nil {
-		return fmt.Errorf("failed to set UserID: %w", err)
+		return fmt.Errorf("failed to generate user id")
 	}
 
 	return nil
@@ -36,14 +36,14 @@ func setUserID(userID string, ttl int) error {
 func ExistUserID(userID string) (bool, error) {
 	result, err := client.HExists(ctx, "UserID", userID).Result()
 	if err != nil {
-		return false, fmt.Errorf("failed to check UserID: %w", err)
+		return false, fmt.Errorf("invalid user id")
 	}
 
 	// Check TTL
 	if result {
 		expire, err := client.HGet(ctx, "UserID", userID).Int64()
 		if err != nil {
-			return false, fmt.Errorf("failed to get TTL for UserID: %w", err)
+			return false, fmt.Errorf("failed to get TTL for user id")
 		}
 
 		now := time.Now().Unix()

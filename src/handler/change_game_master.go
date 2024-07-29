@@ -46,5 +46,5 @@ func ChangeGameMasterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	util.SuccessJsonResponse(w, http.StatusOK, "game master id", user.ID)
+	util.SuccessJsonResponse(w, http.StatusOK, "user_id", user.ID)
 }

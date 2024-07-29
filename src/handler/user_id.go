@@ -19,7 +19,7 @@ func GenerateUserIDHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	util.SuccessJsonResponse(w, http.StatusOK, "user id", userID)
+	util.SuccessJsonResponse(w, http.StatusOK, "user_id", userID)
 }
 
 func ExistUserIDHandler(w http.ResponseWriter, r *http.Request) {

@@ -34,7 +34,7 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 
 		// if 10 times looped, return error
 		if i == 9 {
-			util.ErrorJsonResponse(w, http.StatusInternalServerError, fmt.Errorf("failed to generate room ID"))
+			util.ErrorJsonResponse(w, http.StatusInternalServerError, fmt.Errorf("failed to generate room id"))
 			return
 		}
 	}
@@ -49,5 +49,5 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	util.SuccessJsonResponse(w, http.StatusCreated, "room id", roomID)
+	util.SuccessJsonResponse(w, http.StatusCreated, "room_id", roomID)
 }
