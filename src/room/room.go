@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/yashikota/scene-hunter-backend/internal/util"
 	"github.com/yashikota/scene-hunter-backend/model"
+	"github.com/yashikota/scene-hunter-backend/src/util"
 )
 
 var ctx, client = util.SetUpRedisClient()

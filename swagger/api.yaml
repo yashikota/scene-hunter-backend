@@ -4,18 +4,17 @@ info:
   description: Scene HunterのAPI定義書
   version: 0.1.0
 servers:
-  - url: http://{host}:{port}/api
-    description: dev
-    variables:
-      host:
-        default: localhost
-      port:
-        default: '8080'
+  - url: http://localhost:8080/api
+    description: ローカル開発環境
+  - url: https://sh.yashikota.com/api
+    description: 本番環境
 tags:
   - name: id
     description: ユーザーIDに関するAPI
   - name: room
     description: 部屋に関するAPI
+  - name: debug
+    description: デバッグ用API
 paths:
   /generate_user_id:
     get:
@@ -228,6 +227,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /ping:
+    get:
+      tags:
+        - debug
+      summary: ヘルスチェック
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: string
+                example: 'pong'
 components:
   schemas:
     UserInfo:

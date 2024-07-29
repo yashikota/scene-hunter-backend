@@ -1,13 +1,10 @@
 services:
   server:
+    environment:
+      - UPSTASH_REDIS_TOKEN=${UPSTASH_REDIS_TOKEN}
+      - UPSTASH_REDIS_URL=${UPSTASH_REDIS_URL}
     build:
       context: .
-      dockerfile: Dockerfile
-      target: build
+      target: final
     ports:
       - 8080:8080
-    volumes:
-      # - ./:/app
-      - type: bind
-        source: .
-        target: /app

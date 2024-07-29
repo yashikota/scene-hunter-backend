@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"path/filepath"
 
-	"github.com/yashikota/scene-hunter-backend/internal/room"
-	"github.com/yashikota/scene-hunter-backend/internal/util"
+	"github.com/yashikota/scene-hunter-backend/src/room"
+	"github.com/yashikota/scene-hunter-backend/src/util"
 )
 
 func UploadPhotoHandler(w http.ResponseWriter, r *http.Request) {
@@ -40,7 +40,7 @@ func UploadPhotoHandler(w http.ResponseWriter, r *http.Request) {
 		util.ErrorJsonResponse(w, http.StatusBadRequest, fmt.Errorf("room_id is required"))
 		return
 	}
-	
+
 	result, err := room.CheckExistRoom(roomID)
 	if err != nil {
 		util.ErrorJsonResponse(w, http.StatusInternalServerError, err)
@@ -107,17 +107,17 @@ func UploadPhotoHandler(w http.ResponseWriter, r *http.Request) {
 
 		img = util.Resize(img, 720)
 
-		buf, err := util.ConvertToAVIF(img)
-		if err != nil {
-			util.ErrorJsonResponse(w, http.StatusInternalServerError, err)
-			return
-		}
+		// buf, err := util.ConvertToAVIF(img)
+		// if err != nil {
+		// 	util.ErrorJsonResponse(w, http.StatusInternalServerError, err)
+		// 	return
+		// }
 
-		fileName, err := util.SaveFile(buf, convertedPhotoUploadDir, ".avif")
-		if err != nil {
-			util.ErrorJsonResponse(w, http.StatusInternalServerError, err)
-			return
-		}
+		// fileName, err := util.SaveFile(buf, convertedPhotoUploadDir, ".avif")
+		// if err != nil {
+		// 	util.ErrorJsonResponse(w, http.StatusInternalServerError, err)
+		// 	return
+		// }
 
 		imagePath := fmt.Sprintf("%s/%s", convertedPhotoUploadDir, fileName)
 		log.Printf("imagePath: %s", imagePath)

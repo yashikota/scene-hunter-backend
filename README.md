@@ -3,11 +3,13 @@
 ## Dev
 
 ```sh
-go run server/main.go
+docker compose up --build
 ```
+
+Application will be available at <http://localhost:8080>.
 
 ## Build
 
 ```sh
-docker compose up -d
+docker build --platform=linux/amd64 -t scene-hunter:latest .
 ```
