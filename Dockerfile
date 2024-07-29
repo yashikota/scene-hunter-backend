@@ -41,6 +41,9 @@ FROM gcr.io/distroless/static-debian12 AS final
 # Copy the executable from the "build" stage.
 COPY --from=build /bin/server /bin/
 
+# Copy Swagger files.
+COPY ./swagger ./swagger
+
 # Expose the port that the application listens on.
 EXPOSE 8080
 
