@@ -18,10 +18,14 @@ func loadEnv() {
 }
 
 func getUpstashSecret() (string, string) {
-	// loadEnv()
-
 	UPSTASH_REDIS_URL := os.Getenv("UPSTASH_REDIS_URL")
 	UPSTASH_REDIS_TOKEN := os.Getenv("UPSTASH_REDIS_TOKEN")
+
+	if UPSTASH_REDIS_URL == "" || UPSTASH_REDIS_TOKEN == "" {
+		loadEnv()
+		UPSTASH_REDIS_URL = os.Getenv("UPSTASH_REDIS_URL")
+		UPSTASH_REDIS_TOKEN = os.Getenv("UPSTASH_REDIS_TOKEN")
+	}
 
 	return UPSTASH_REDIS_URL, UPSTASH_REDIS_TOKEN
 }
