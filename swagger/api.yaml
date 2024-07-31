@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Scene Hunter API
-  description: 'Scene HunterのAPI定義書 エラーはすべて {"message": "err"} で返す'
+  description: Scene HunterのAPI定義書
   version: 0.1.0
 servers:
   - url: http://localhost:8080/api
@@ -13,6 +13,8 @@ tags:
     description: ユーザーIDに関するAPI
   - name: room
     description: 部屋に関するAPI
+  - name: game
+    description: ゲームに関するAPI
   - name: debug
     description: デバッグ用API
 paths:
@@ -34,8 +36,11 @@ paths:
           content:
             application/json:
               schema:
-                type: string
-                example: {"user_id": "01GR6FXNBHTQSAF7CZBVNP48NX"}
+                type: object
+                properties:
+                  user_id:
+                    type: string
+                    example: 01J0HJQ97M468YGVJNTTPMAZ2W
         "500":
           description: ユーザーIDの生成に失敗 もしくは ユーザーIDのTTLの設定に失敗
   /exist_user_id:
@@ -60,10 +65,42 @@ paths:
           content:
             application/json:
               schema:
-                type: string
-                example: {"message": "user id exists"}
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: user id exists
         "500":
-          description: 不正なユーザーIDを指定 もしくは ユーザーIDのTTLの取得に失敗
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Invalid request payload
+                  errors:
+                    type: array
+                    items:
+                      type: string
+              examples:
+                invalidPayload:
+                  summary: Invalid request payload
+                  value:
+                    message: Invalid request payload
+                idRequired:
+                  summary: ID is required
+                  value:
+                    message: id is required
+                nameRequired:
+                  summary: Name is required
+                  value:
+                    message: name is required
+                langRequired:
+                  summary: Lang is required
+                  value:
+                    message: lang is required
   /create_room:
     post:
       tags:
@@ -77,17 +114,55 @@ paths:
             schema:
               $ref: "#/components/schemas/UserInfo"
       responses:
-        "201":
-          description: 成功
+        "200":
+          description: Room created successfully
           content:
             application/json:
               schema:
-                type: string
-                example: {"room_id": "123456"}
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Room created successfully
         "400":
-          description: 不正なリクエスト
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Invalid request payload
+                  errors:
+                    type: array
+                    items:
+                      type: string
+              examples:
+                invalidPayload:
+                  summary: Invalid request payload
+                  value:
+                    message: Invalid request payload
+        "405":
+          description: Method Not Allowed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Method Not Allowed
         "500":
-          description: 内部サーバーエラー
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Failed to creation room
   /join_room:
     post:
       tags:
@@ -111,14 +186,50 @@ paths:
           content:
             application/json:
               schema:
-                type: string
-                example: {"message": "successfully joined the room"}
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: successfully joined the room
         "400":
-          description: 不正なリクエスト
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Invalid request payload
+                  errors:
+                    type: array
+                    items:
+                      type: string
+              examples:
+                invalidPayload:
+                  summary: Invalid request payload
+                  value:
+                    message: Invalid request payload
         "404":
-          description: 部屋が見つからない
+          description: Room not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Room not found
         "500":
-          description: 内部サーバーエラー
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Failed to join the room
   /get_room_users:
     get:
       tags:
@@ -138,37 +249,53 @@ paths:
               schema:
                 type: object
                 example: {
-                  "users": [{
-                    "game_master_id": "01J0HJQ97M468YGVJNTTPMAZ2W",
-                    "total_players": 0,
-                    "game_rounds": 3,
-                    "users": {
-                      "01J0HJQ97M468YGVJNTTPMAZ2W": {
-                        "id": "01J0HJQ97M468YGVJNTTPMAZ2W",
-                        "name": "hoge",
-                        "lang": "ja",
-                        "status": "active",
-                        "photo_score_index": 4,
-                        "score": {
-                          "0": 43.8428,
-                          "1": 44.8822,
-                          "2": 25.4512,
-                          "3": 35.2122
-                        },
-                        "photo": {
-                          "0": "uploads/286193/01J0HMRXE70000000000000000.jpeg",
-                          "1": "uploads/286193/01J0HMRZRT0000000000000000.jpeg",
-                          "2": "uploads/286193/01J0HMSB7Z0000000000000000.jpeg",
-                          "3": "uploads/286193/01J0HMSEC10000000000000000.jpeg"
+                    "room": {
+                      "game_master_id": "01J0HJQ97M468YGVJNTTPMAZ2W",
+                      "total_players": 0,
+                      "game_rounds": 3,
+                      "users": {
+                        "01J0HJQ97M468YGVJNTTPMAZ2W": {
+                          "id": "01J0HJQ97M468YGVJNTTPMAZ2W",
+                          "name": "hoge",
+                          "lang": "ja",
+                          "status": "active",
+                          "photo_score_index": 4,
+                          "score": {
+                            "0": 43.8428,
+                            "1": 44.8822,
+                            "2": 25.4512,
+                            "3": 35.2122
+                          },
+                          "photo": {
+                            "0": "uploads/286193/01J0HMRXE70000000000000000.jpeg",
+                            "1": "uploads/286193/01J0HMRZRT0000000000000000.jpeg",
+                            "2": "uploads/286193/01J0HMSB7Z0000000000000000.jpeg",
+                            "3": "uploads/286193/01J0HMSEC10000000000000000.jpeg"
+                          }
                         }
                       }
                     }
                   }
-                ]}
         "400":
-          description: 不正なリクエスト
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Invalid request payload
         "500":
-          description: 内部サーバーエラー
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Failed to get room users
   /change_game_master:
     put:
       tags:
@@ -195,11 +322,141 @@ paths:
                 type: string
                 example: {"user_id": "01GR6FXNBHTQSAF7CZBVNP48NX"}
         "400":
-          description: 不正なリクエスト
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Invalid request payload
         "404":
           description: 部屋がみつからないまたはユーザーが部屋に存在しない
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Room not found
+                  errors:
+                    type: array
+                    items:
+                      type: string
+              examples:
+                roomNotFound:
+                  summary: Room not found
+                  value:
+                    message: Room not found
+                userNotFound:
+                  summary: User not found
+                  value:
+                    message: User not found
         "500":
-          description: 内部サーバーエラー
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Failed to change game master
+  /upload_photo:
+      post:
+        tags:
+          - game
+        summary: 写真をアップロードする
+        requestBody:
+          required: true
+          content:
+            multipart/form-data:
+              schema:
+                type: object
+                required:
+                  - user_id
+                  - image
+                properties:
+                  user_id:
+                    type: string
+                  image:
+                    type: string
+                    format: binary
+        parameters:
+          - in: query
+            name: room_id
+            required: true
+            schema:
+              type: string
+        responses:
+          "200":
+            description: Successful operation
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    image_path:
+                      type: object
+                      properties:
+                        original:
+                          type: string
+                        converted:
+                          type: string
+          "400":
+            description: Bad Request
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                examples:
+                  userIdRequired:
+                    summary: User ID is required
+                    value:
+                      message: user_id is required
+                  invalidUserId:
+                    summary: Invalid user ID
+                    value:
+                      message: invalid user ID
+                  roomIdRequired:
+                    summary: Room ID is required
+                    value:
+                      message: room_id is required
+                  fileTypeError:
+                    summary: Invalid file type
+                    value:
+                      message: invalid file type
+                  fileSizeError:
+                    summary: File size exceeds limit
+                    value:
+                      message: file size exceeds the limit
+          "404":
+            description: Not Found
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                example:
+                  message: room not found
+          "500":
+            description: Internal Server Error
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                example:
+                  message: internal server error
   /ping:
     get:
       tags:
@@ -209,7 +466,7 @@ paths:
         "200":
           description: 成功
           content:
-            application/json:
+            text:
               schema:
                 type: string
                 example: "pong"
@@ -245,4 +502,4 @@ components:
         users:
           type: object
           additionalProperties:
-            $ref: '#/components/schemas/UserInfo'
+            $ref: "#/components/schemas/UserInfo"

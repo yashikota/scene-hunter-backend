@@ -57,7 +57,7 @@ func SaveFile(data []byte, path string, extension string) (string, error) {
 	return fileName, nil
 }
 
-func ToBytes(r *http.Request) ([]byte, error) {
+func ReadFormFile(r *http.Request) ([]byte, error) {
 	file, _, err := r.FormFile("image")
 	if err != nil {
 		return nil, fmt.Errorf("failed to read the form file")

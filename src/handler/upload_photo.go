@@ -74,60 +74,46 @@ func UploadPhotoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate File Type
-	fileType, err := util.ValidateFileType(r)
+	_, err = util.ValidateFileType(r)
 	if err != nil {
 		util.ErrorJsonResponse(w, http.StatusBadRequest, err)
 		return
 	}
 
 	// multipart.File to bytes.Buffer
-	img, err := util.ToBytes(r)
+	img, err := util.ReadFormFile(r)
 	if err != nil {
 		util.ErrorJsonResponse(w, http.StatusBadRequest, err)
 		return
 	}
 
-	// Read the form file
-	fileName, err := util.SaveFile(img, originalPhotoUploadDir, ".jpg")
+	// Save the original photo
+	originalFileName, err := util.SaveFile(img, originalPhotoUploadDir, ".jpg")
 	if err != nil {
 		util.ErrorJsonResponse(w, http.StatusBadRequest, err)
 		return
 	}
+	originalFilePath := fmt.Sprintf("%s/%s", originalPhotoUploadDir, originalFileName)
 
-	// DEBUG: Print the form data
-	log.Printf("uploadDir: %s, fileName: %s", originalPhotoUploadDir, fileName)
+	// Resize the photo
+	resizedImg := util.Resize(img, 720)
+	convertedFileName, err := util.SaveFile(resizedImg, convertedPhotoUploadDir, ".jpg")
+	if err != nil {
+		util.ErrorJsonResponse(w, http.StatusInternalServerError, err)
+		return
+	}
+	convertedFilePath := fmt.Sprintf("%s/%s", convertedPhotoUploadDir, convertedFileName)
 
-	// Asynchronously process the file and immediately return a response to the client
-	go func() {
-		img, err := util.LoadImage(img, fileType)
-		if err != nil {
-			util.ErrorJsonResponse(w, http.StatusInternalServerError, err)
-			return
-		}
+	uploadLog := map[string]string{
+		"original":  originalFilePath,
+		"converted": convertedFilePath,
+	}
 
-		img = util.Resize(img, 720)
+	err = room.AddRoomUserPhotoAndScore(roomID, userID, convertedFilePath)
+	if err != nil {
+		log.Println(err)
+		return
+	}
 
-		// buf, err := util.ConvertToAVIF(img)
-		// if err != nil {
-		// 	util.ErrorJsonResponse(w, http.StatusInternalServerError, err)
-		// 	return
-		// }
-
-		// fileName, err := util.SaveFile(buf, convertedPhotoUploadDir, ".avif")
-		// if err != nil {
-		// 	util.ErrorJsonResponse(w, http.StatusInternalServerError, err)
-		// 	return
-		// }
-
-		imagePath := fmt.Sprintf("%s/%s", convertedPhotoUploadDir, fileName)
-		log.Printf("imagePath: %s", imagePath)
-
-		err = room.AddRoomUserPhotoAndScore(roomID, userID, imagePath)
-		if err != nil {
-			log.Println(err)
-			return
-		}
-	}()
-
-	util.SuccessJsonResponse(w, http.StatusOK, "message", "photo uploaded successfully")
+	util.SuccessJsonResponse(w, http.StatusOK, "image_path", uploadLog)
 }

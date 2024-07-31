@@ -47,7 +47,7 @@ func main() {
 
 	// Photo Preview
 	photoServer := http.FileServer(http.Dir("./uploads"))
-	r.Handle("/uploads/", http.StripPrefix("/uploads", photoServer))
+	r.Handle("/uploads/*", http.StripPrefix("/uploads/", photoServer))
 
 	// Debug
 	r.HandleFunc("GET /api/ping", handler.PingHandler)

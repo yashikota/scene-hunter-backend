@@ -71,7 +71,7 @@ func ValidateStatusRequired(user model.User) error {
 }
 
 func ValidateMaxFileSize(r *http.Request) error {
-	const maxFileSize = 10 * 1024 * 1024 // 10MB
+	const maxFileSize = 5 * 1024 * 1024 // 5MB
 
 	r.Body = http.MaxBytesReader(nil, r.Body, maxFileSize)
 	if err := r.ParseMultipartForm(maxFileSize); err != nil {

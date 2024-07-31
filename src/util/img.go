@@ -10,8 +10,7 @@ import (
 	"golang.org/x/image/draw"
 )
 
-// Readable image formats
-// jpeg, png, webp, heic
+// Readable image formats: jpeg, png
 func LoadImage(data []byte, fileType string) (image.Image, error) {
 	var img image.Image
 	var err error
@@ -33,7 +32,12 @@ func LoadImage(data []byte, fileType string) (image.Image, error) {
 }
 
 // Aspect ratio preserving image resizing
-func Resize(img image.Image, maxHeight int) image.Image {
+func Resize(data []byte, maxHeight int) ([]byte) {
+	img, err := LoadImage(data, "image/jpeg")
+	if err != nil {
+		return nil
+	}
+
 	// Calculate the new size
 	width := img.Bounds().Max.X
 	height := img.Bounds().Max.Y
@@ -50,7 +54,11 @@ func Resize(img image.Image, maxHeight int) image.Image {
 	dst := image.NewRGBA(image.Rect(0, 0, width, height))
 	draw.CatmullRom.Scale(dst, dst.Bounds(), img, img.Bounds(), draw.Over, nil)
 
-	return dst
+	// Encode the image
+	buf := new(bytes.Buffer)
+	jpeg.Encode(buf, dst, nil)
+
+	return buf.Bytes()
 }
 
 // func ConvertToAVIF(img image.Image) ([]byte, error) {
