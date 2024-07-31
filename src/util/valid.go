@@ -9,46 +9,65 @@ import (
 	"github.com/yashikota/scene-hunter-backend/model"
 )
 
-func ParseAndValidateUser(r *http.Request, checkFlag int) (model.User, error) {
+func ParseAndValidateUser(r *http.Request, validateFuncs ...func(user model.User) error) (model.User, error) {
 	user := model.User{}
-	err := json.NewDecoder(r.Body).Decode(&user)
-	if err != nil {
-		return user, fmt.Errorf("failed to parse the request body")
+
+	// Parse the request body into the user struct
+	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+		return user, fmt.Errorf("failed to parse the request body: %w", err)
 	}
 
-	const (
-		flagID   = 0b1000
-		flagName = 0b0100
-		flagLang = 0b0010
-		flagStatus = 0b0001
-	)
-
-	if checkFlag&flagID != 0 && user.ID == "" {
-		return user, fmt.Errorf("id is required")
-	}
-	if checkFlag&flagName != 0 && user.Name == "" {
-		return user, fmt.Errorf("name is required")
-	}
-	if checkFlag&flagLang != 0 && user.Lang == "" {
-		return user, fmt.Errorf("language is required")
-	}
-	if checkFlag&flagStatus != 0 && user.Status == "" {
-		return user, fmt.Errorf("status is required")
-	}
-
-	// Validate UserID
-	exist, err := ExistUserID(user.ID)
-	if err != nil {
-		return user, err
-	}
-	if !exist {
-		return user, fmt.Errorf("invalid user ID")
+	// Apply each validation function
+	for _, validate := range validateFuncs {
+		if err := validate(user); err != nil {
+			return user, err
+		}
 	}
 
 	// DEBUG: Print the form data
-	log.Println("ID:", user.ID, "Name:", user.Name, "Language:", user.Lang)
+	log.Printf("ID: %s, Name: %s, Language: %s", user.ID, user.Name, user.Lang)
 
 	return user, nil
+}
+
+// Individual validation functions
+func ValidateIDRequired(user model.User) error {
+	if user.ID == "" {
+		return fmt.Errorf("id is required")
+	}
+	exist, err := ExistUserID(user.ID)
+	if err != nil {
+		return fmt.Errorf("failed to validate user ID: %w", err)
+	}
+	if !exist {
+		return fmt.Errorf("invalid user ID")
+	}
+
+	return nil
+}
+
+func ValidateNameRequired(user model.User) error {
+	if user.Name == "" {
+		return fmt.Errorf("name is required")
+	}
+
+	return nil
+}
+
+func ValidateLangRequired(user model.User) error {
+	if user.Lang == "" {
+		return fmt.Errorf("language is required")
+	}
+
+	return nil
+}
+
+func ValidateStatusRequired(user model.User) error {
+	if user.Status == "" {
+		return fmt.Errorf("status is required")
+	}
+
+	return nil
 }
 
 func ValidateMaxFileSize(r *http.Request) error {
