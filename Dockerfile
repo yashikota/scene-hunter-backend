@@ -7,7 +7,8 @@
 ################################################################################
 # Create a stage for building the application.
 ARG GO_VERSION=latest
-FROM --platform=$BUILDPLATFORM golang:${GO_VERSION} AS build
+# FROM --platform=$BUILDPLATFORM golang:${GO_VERSION} AS build
+FROM golang:${GO_VERSION} AS build
 WORKDIR /src
 
 # Download dependencies as a separate step to take advantage of Docker's caching.
@@ -21,7 +22,7 @@ RUN --mount=type=cache,target=/go/pkg/mod/ \
 
 # This is the architecture you're building for, which is passed in by the builder.
 # Placing it here allows the previous steps to be cached across architectures.
-ARG TARGETARCH
+# ARG TARGETARCH
 
 # Build the application.
 # Leverage a cache mount to /go/pkg/mod/ to speed up subsequent builds.
@@ -29,7 +30,7 @@ ARG TARGETARCH
 # source code into the container.
 RUN --mount=type=cache,target=/go/pkg/mod/ \
     --mount=type=bind,target=. \
-    CGO_ENABLED=0 GOARCH=$TARGETARCH go build -o /bin/server ./src
+    CGO_ENABLED=0 go build -o /bin/server ./src
 
 ################################################################################
 # Create a new stage for running the application that contains the minimal
@@ -43,6 +44,12 @@ COPY --from=build /bin/server /bin/
 
 # Copy Swagger files.
 COPY ./swagger ./swagger
+
+# Set environment
+# RUN --mount=type=secret,id=UPSTASH_REDIS_TOKEN \
+#     UPSTASH_REDIS_TOKEN=$(cat /run/secrets/UPSTASH_REDIS_TOKEN)
+# RUN --mount=type=secret,id=UPSTASH_REDIS_URL \
+#     UPSTASH_REDIS_URL=$(cat /run/secrets/UPSTASH_REDIS_URL)
 
 # Expose the port that the application listens on.
 EXPOSE 8080
