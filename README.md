@@ -11,5 +11,5 @@ Application will be available at <http://localhost:8080>.
 ## Build
 
 ```sh
-docker build -t scene-hunter .
+docker build --platform=linux/amd64 -t scene-hunter .
 ```
