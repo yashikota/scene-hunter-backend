@@ -10,18 +10,6 @@
 `/api/generate_user_id` にGETリクエストを投げる。  
 オプションで期限を設定できる。デフォルトは86400秒(1日)。  
 
-### Example
-
-```sh
-curl -X GET "http://localhost:8080/api/generate_user_id"
-```
-
-期限を決めたい時は、秒単位で指定する。  
-
-```sh
-curl -X GET "http://localhost:8080/api/generate_user_id?ttl={ttl}"
-```
-
 ### Response
 
 | Status Code | Response | cause |
@@ -36,12 +24,6 @@ curl -X GET "http://localhost:8080/api/generate_user_id?ttl={ttl}"
 ### Request
 
 `/api/exist_user_id` にGETリクエストを投げる。  
-
-### Example
-
-```sh
-curl -X GET "http://localhost:8080/api/exist_user_id?user_id={UserID}"
-```
 
 ### Response
 
@@ -63,14 +45,6 @@ RoomIDが衝突していないことを確認後[^1]、部屋を作成しリク�
 
 `/api/create_room` に `{id, name, lang}` を含んだPOSTリクエストを投げる。  
 
-#### Example
-
-```sh
-curl -X POST "http://localhost:8080/api/create_room" \
-                 -H "Content-Type: application/json" \
-                 -d '{"id": "{UserID}", "name": "{UserName}", "lang": "{UserLang}"}'
-```
-
 ### Response
 
 | Status Code | Response | cause |
@@ -91,14 +65,6 @@ curl -X POST "http://localhost:8080/api/create_room" \
 ### Request
 
 `/api/join_room?room_id={room_id}` に `{id, name, lang}` を含んだPOSTリクエストを投げる。
-
-#### Example
-
-```sh
-curl -X POST "http://localhost:8080/api/join_room?room_id={RoomID}" \
-                 -H "Content-Type: application/json" \
-                 -d '{"id": "{UserID}", "name": "{UserName}", "lang": "{UserLang}"}'
-```
 
 ### Response
 
@@ -122,12 +88,6 @@ curl -X POST "http://localhost:8080/api/join_room?room_id={RoomID}" \
 
 `/api/get_room_users?room_id={room_id}` にGETリクエストを送る。
 
-#### Example
-
-```sh
-curl -X GET "http://localhost:8080/api/get_room_users?room_id={RoomID}"
-```
-
 ### Response
 
 | Status Code | Response | cause |
@@ -145,17 +105,10 @@ curl -X GET "http://localhost:8080/api/get_room_users?room_id={RoomID}"
 
 `/api/change_game_master?room_id={room_id}` に `{id}` を含んだPUTリクエストを送る。
 
-### Example
-
-```sh
-curl -X PUT "http://localhost:8080/api/change_game_master?room_id={RoomID}" \
-                       -H "Content-Type: application/json" \
-                       -d '{"id": "{UserID}"}'
-```
-
 ### Response
 
 | Status Code | Response | cause |
+| - | - | - |
 | 200 | Successfully changed the game master | 処理が全て正常に終了 |
 | 400 | room_id is required | RoomIDがリクエストに含まれていない |
 | 404 | Room does not exist | 指定されたRoomIDが存在しない |
@@ -171,12 +124,6 @@ RoomIDで指定された部屋にいるUserの削除。
 ### Request
 
 `/api/get_room_users?room_id={room_id}` にDELETEリクエストを送る。
-
-#### Example
-
-```sh
-curl -X DELETE "http://localhost:8080/api/get_room_users?room_id={RoomID}"
-```
 
 ### Response
 
@@ -195,12 +142,6 @@ curl -X DELETE "http://localhost:8080/api/get_room_users?room_id={RoomID}"
 ### Request
 
 `/api/delete_room?room_id={room_id}` にDELETEリクエストを送る。
-
-#### Example
-
-```sh
-curl -X DELETE "http://localhost:8080/api/delete_room?room_id={RoomID}"
-```
 
 ### Response
 
