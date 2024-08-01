@@ -245,12 +245,12 @@ paths:
                   message:
                     type: string
                     example: Failed to join the room
-  /get_room_status:
+  /get_room_users:
     get:
       tags:
         - room
-      summary: 部屋の情報を取得する
-      description: ゲームマスターのID、プレイヤーの数、ゲームの進行状況、ラウンド数、各プレイヤーのID、名前、言語、ステータス、写真のスコア、スコア、写真のURLを取得する
+      summary: 部屋のユーザー情報を取得する
+      description: ゲームマスターのID、プレイヤーの数、各プレイヤーのID、名前、言語、ステータス、写真のスコア、スコア、写真のURLを取得する
       parameters:
         - name: room_id
           in: query
@@ -267,7 +267,7 @@ paths:
                 example: {
                     "room": {
                       "game_master_id": "01J0HJQ97M468YGVJNTTPMAZ2W",
-                      "total_players": 0,
+                      "total_players": 1,
                       "users": {
                         "01J0HJQ97M468YGVJNTTPMAZ2W": {
                           "id": "01J0HJQ97M468YGVJNTTPMAZ2W",
