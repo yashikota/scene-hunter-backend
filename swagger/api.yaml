@@ -70,8 +70,18 @@ paths:
                   message:
                     type: string
                     example: user id exists
-        "500":
+        "400":
           description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: failed to check user id
+        "500":
+          description: Internal Server Error
           content:
             application/json:
               schema:
@@ -220,6 +230,16 @@ paths:
                   message:
                     type: string
                     example: Room not found
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User already exists in the room
         "500":
           description: Internal Server Error
           content:
@@ -286,6 +306,19 @@ paths:
                   message:
                     type: string
                     example: Invalid request payload
+        "404":
+          description: 部屋がみつからない
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: room not found {room_id}
         "500":
           description: Internal Server Error
           content:
@@ -319,8 +352,14 @@ paths:
           content:
             application/json:
               schema:
-                type: string
-                example: {"user_id": "01GR6FXNBHTQSAF7CZBVNP48NX"}
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: successfully changed the game master
+                  user_id:
+                    type: string
+                    example: {user_id}
         "400":
           description: Bad Request
           content:
@@ -332,7 +371,7 @@ paths:
                     type: string
                     example: Invalid request payload
         "404":
-          description: 部屋がみつからないまたはユーザーが部屋に存在しない
+          description: 部屋がみつからない または ユーザーが部屋に存在しない
           content:
             application/json:
               schema:

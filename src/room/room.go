@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/yashikota/scene-hunter-backend/model"
 	"github.com/yashikota/scene-hunter-backend/src/util"
@@ -34,9 +35,16 @@ func CreateRoom(roomID string, user model.User) error {
 		return fmt.Errorf("failed to create the room")
 	}
 
-	err = client.JSONSet(ctx, roomID, "$", string(roomJSON)).Err()
+	key := fmt.Sprintf("RoomID:%s", roomID)
+	err = client.JSONSet(ctx, key, "$", string(roomJSON)).Err()
 	if err != nil {
 		return fmt.Errorf("failed to create the room")
+	}
+
+	// Set the expiration time to 24 hours
+	err = client.Expire(ctx, roomID, 24 * time.Hour).Err()
+	if err != nil {
+		return fmt.Errorf("failed to set the expiration time")
 	}
 
 	return nil
@@ -57,12 +65,13 @@ func JoinRoom(roomID string, user model.User) error {
 		return fmt.Errorf("failed to join the room")
 	}
 
-	err = client.JSONSet(ctx, roomID, "$.users."+user.ID, string(playerJSON)).Err()
+	key := fmt.Sprintf("RoomID:%s", roomID)
+	err = client.JSONSet(ctx, key, "$.users."+user.ID, string(playerJSON)).Err()
 	if err != nil {
 		return fmt.Errorf("failed to join the room")
 	}
 
-	err = client.JSONNumIncrBy(ctx, roomID, "$.total_players", 1).Err()
+	err = client.JSONNumIncrBy(ctx, key, "$.total_players", 1).Err()
 	if err != nil {
 		return fmt.Errorf("failed to increment the total players")
 	}
@@ -71,7 +80,8 @@ func JoinRoom(roomID string, user model.User) error {
 }
 
 func CheckExistRoom(roomID string) (bool, error) {
-	result := client.Exists(ctx, roomID)
+	key := fmt.Sprintf("RoomID:%s", roomID)
+	result := client.Exists(ctx, key)
 	if result.Val() == 0 {
 		return false, fmt.Errorf("room not found: %s", roomID)
 	}
@@ -80,7 +90,8 @@ func CheckExistRoom(roomID string) (bool, error) {
 }
 
 func CheckExistUser(roomID string, userID string) (bool, int, error) {
-	result, err := client.JSONGet(ctx, roomID, fmt.Sprintf("$.users.%s", userID)).Result()
+	key := fmt.Sprintf("RoomID:%s", roomID)
+	result, err := client.JSONGet(ctx, key, fmt.Sprintf("$.users.%s", userID)).Result()
 	if err != nil {
 		return false, http.StatusInternalServerError, fmt.Errorf("failed to check if the user exists")
 	}
@@ -93,7 +104,8 @@ func CheckExistUser(roomID string, userID string) (bool, int, error) {
 }
 
 func GetRoomUsers(roomID string) ([]*model.Room, error) {
-	jsonData, err := client.JSONGet(ctx, roomID, "$").Result()
+	key := fmt.Sprintf("RoomID:%s", roomID)
+	jsonData, err := client.JSONGet(ctx, key, "$").Result()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get the room data")
 	}
@@ -108,7 +120,8 @@ func GetRoomUsers(roomID string) ([]*model.Room, error) {
 }
 
 func ChangeGameMaster(roomID string, userID string) error {
-	err := client.JSONSet(ctx, roomID, "$.game_master_id", fmt.Sprintf("\"%s\"", userID)).Err()
+	key := fmt.Sprintf("RoomID:%s", roomID)
+	err := client.JSONSet(ctx, key, "$.game_master_id", fmt.Sprintf("\"%s\"", userID)).Err()
 	if err != nil {
 		return fmt.Errorf("failed to change the game master")
 	}
@@ -117,7 +130,8 @@ func ChangeGameMaster(roomID string, userID string) error {
 }
 
 func AddRoomUserPhotoAndScore(roomID string, userID string, photoURL string) error {
-	photoScoreIndex, err := client.JSONGet(ctx, roomID, fmt.Sprintf("$.users.%s.photo_score_index", userID)).Result()
+	key := fmt.Sprintf("RoomID:%s", roomID)
+	photoScoreIndex, err := client.JSONGet(ctx, key, fmt.Sprintf("$.users.%s.photo_score_index", userID)).Result()
 	if err != nil {
 		return fmt.Errorf("failed to get the player's score index")
 	}
@@ -147,12 +161,13 @@ func AddRoomUserPhotoAndScore(roomID string, userID string, photoURL string) err
 }
 
 func DeleteRoomUser(roomID string, userID string) error {
-	err := client.JSONDel(ctx, roomID, fmt.Sprintf("$.users.%s", userID)).Err()
+	key := fmt.Sprintf("RoomID:%s", roomID)
+	err := client.JSONDel(ctx, key, fmt.Sprintf("$.users.%s", userID)).Err()
 	if err != nil {
 		return fmt.Errorf("failed to delete the user from the room")
 	}
 
-	err = client.JSONNumIncrBy(ctx, roomID, "$.total_players", -1).Err()
+	err = client.JSONNumIncrBy(ctx, key, "$.total_players", -1).Err()
 	if err != nil {
 		return fmt.Errorf("failed to decrement the total players")
 	}
@@ -161,7 +176,8 @@ func DeleteRoomUser(roomID string, userID string) error {
 }
 
 func DeleteRoom(roomID string) error {
-	err := client.Del(ctx, roomID).Err()
+	key := fmt.Sprintf("RoomID:%s", roomID)
+	err := client.Del(ctx, key).Err()
 	if err != nil {
 		return fmt.Errorf("failed to delete the room")
 	}

@@ -23,6 +23,7 @@ func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check if the room exists
 	result, err := room.CheckExistRoom(roomID)
 	if err != nil {
 		util.ErrorJsonResponse(w, http.StatusInternalServerError, err)
@@ -30,6 +31,17 @@ func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if !result {
 		util.ErrorJsonResponse(w, http.StatusNotFound, err)
+		return
+	}
+
+	// Check if the user already joined the room
+	exist, status, err := room.CheckExistUser(roomID, user.ID)
+	if err != nil {
+		util.ErrorJsonResponse(w, status, err)
+		return
+	}
+	if exist {
+		util.ErrorJsonResponse(w, http.StatusConflict, fmt.Errorf("user already joined the room"))
 		return
 	}
 

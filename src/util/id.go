@@ -22,10 +22,9 @@ func GenerateUserID(ttl int) (string, error) {
 }
 
 func setUserID(userID string, ttl int) error {
-	now := time.Now().Unix()
-	expire := now + int64(ttl)
+	key := fmt.Sprintf("UserID:%s", userID)
 
-	_, err := client.HSet(ctx, "UserID", userID, expire).Result()
+	_, err := client.Set(ctx, key, true, time.Duration(ttl)*time.Second).Result()
 	if err != nil {
 		return fmt.Errorf("failed to generate user id")
 	}
@@ -34,24 +33,15 @@ func setUserID(userID string, ttl int) error {
 }
 
 func ExistUserID(userID string) (bool, error) {
-	result, err := client.HExists(ctx, "UserID", userID).Result()
+	key := fmt.Sprintf("UserID:%s", userID)
+	result, err := client.Exists(ctx, key).Result()
 	if err != nil {
-		return false, fmt.Errorf("invalid user id")
+		return false, fmt.Errorf("failed to check user id")
 	}
 
-	// Check TTL
-	if result {
-		expire, err := client.HGet(ctx, "UserID", userID).Int64()
-		if err != nil {
-			return false, fmt.Errorf("failed to get TTL for user id")
-		}
-
-		now := time.Now().Unix()
-		if now > expire {
-			result = false
-			client.HDel(ctx, "UserID", userID)
-		}
+	if result == 0 {
+		return false, nil
 	}
 
-	return result, nil
+	return true, nil
 }
