@@ -8,7 +8,7 @@ import (
 	"github.com/yashikota/scene-hunter-backend/src/util"
 )
 
-func UpdateRoundsHandler(w http.ResponseWriter, r* http.Request) {
+func UpdateRoundsHandler(w http.ResponseWriter, r *http.Request) {
 	user, err := util.ParseAndValidateUser(r, util.ValidateIDRequired)
 	if err != nil {
 		util.ErrorJsonResponse(w, http.StatusBadRequest, err)

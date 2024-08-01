@@ -32,7 +32,7 @@ func LoadImage(data []byte, fileType string) (image.Image, error) {
 }
 
 // Aspect ratio preserving image resizing
-func Resize(data []byte, maxHeight int) ([]byte) {
+func Resize(data []byte, maxHeight int) []byte {
 	img, err := LoadImage(data, "image/jpeg")
 	if err != nil {
 		return nil
