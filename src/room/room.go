@@ -119,11 +119,40 @@ func GetRoomUsers(roomID string) ([]*model.Room, error) {
 	return roomData, nil
 }
 
+func CheckGameMaster(roomID string, userID string) (bool, int, error) {
+	key := fmt.Sprintf("RoomID:%s", roomID)
+	gameMasterID, err := client.JSONGet(ctx, key, "$.game_master_id").Result()
+	if err != nil {
+		return false, http.StatusInternalServerError, fmt.Errorf("failed to get the game master ID")
+	}
+
+	gameMasterID = gameMasterID[2 : len(gameMasterID)-2]
+	if gameMasterID != userID {
+		return false, http.StatusForbidden, fmt.Errorf("you are not the game master")
+	}
+
+	return true, http.StatusOK, nil
+}
+
 func ChangeGameMaster(roomID string, userID string) error {
 	key := fmt.Sprintf("RoomID:%s", roomID)
 	err := client.JSONSet(ctx, key, "$.game_master_id", fmt.Sprintf("\"%s\"", userID)).Err()
 	if err != nil {
 		return fmt.Errorf("failed to change the game master")
+	}
+
+	return nil
+}
+
+func UpdateRounds(roomID string, rounds string) error {
+	if !util.ValidateRounds(rounds) {
+		return fmt.Errorf("rounds must be between 1 and 10")
+	}
+
+	key := fmt.Sprintf("RoomID:%s", roomID)
+	err := client.JSONSet(ctx, key, "$.game_rounds", rounds).Err()
+	if err != nil {
+		return fmt.Errorf("failed to update the rounds")
 	}
 
 	return nil

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/yashikota/scene-hunter-backend/model"
 )
@@ -68,6 +69,21 @@ func ValidateStatusRequired(user model.User) error {
 	}
 
 	return nil
+}
+
+func ValidateRounds(rounds string) bool {
+	// string to int
+	roundsInt, err := strconv.Atoi(rounds)
+	if err != nil {
+		return false
+	}
+
+	// Check if the rounds are between 1 and 10
+	if roundsInt < 1 || roundsInt > 10 {
+		return false
+	}
+
+	return true
 }
 
 func ValidateMaxFileSize(r *http.Request) error {

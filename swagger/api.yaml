@@ -53,12 +53,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                id:
-                  type: string
-              required:
-                - id
+              $ref: "#/components/schemas/IDInfo"
       responses:
         "200":
           description: 成功
@@ -403,6 +398,81 @@ paths:
                   message:
                     type: string
                     example: Failed to change game master
+  /update_rounds:
+    put:
+      tags:
+        - room
+      summary: ラウンド数を更新する
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IDInfo"
+      parameters:
+        - in: query
+          name: room_id
+          required: true
+          schema:
+            type: string
+          description: ルームID
+        - in: query
+          name: rounds
+          required: true
+          schema:
+            type: string
+          description: 新しいラウンド数
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  new_rounds:
+                    type: string
+                    example: "5"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Bad Request
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: you are not the game master
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: room not found
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Internal Server Error
   /upload_photo:
       post:
         tags:
@@ -524,11 +594,13 @@ components:
         - id
         - name
         - lang
-    Error:
+    IDInfo:
       type: object
       properties:
-        message:
+        id:
           type: string
+      required:
+        - id
     RoomInfo:
       type: object
       properties:

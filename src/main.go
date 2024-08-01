@@ -41,6 +41,7 @@ func main() {
 	r.HandleFunc("PATCH /api/change_game_master", handler.ChangeGameMasterHandler)
 	r.HandleFunc("DELETE /api/delete_room_user", handler.DeleteRoomUserHandler)
 	r.HandleFunc("DELETE /api/delete_room", handler.DeleteRoomHandler)
+	r.HandleFunc("PUT /api/update_rounds", handler.UpdateRoundsHandler)
 
 	// Game
 	r.HandleFunc("POST /api/upload_photo", handler.UploadPhotoHandler)
