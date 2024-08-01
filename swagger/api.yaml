@@ -473,6 +473,64 @@ paths:
                   message:
                     type: string
                     example: Internal Server Error
+  /get_game_status:
+    get:
+      tags:
+        - game
+      summary: ゲームの進行状況を取得する
+      description: room_idをクエリパラメータとして受け取り、その部屋のゲームの進行状況を取得する
+      parameters:
+        - in: query
+          name: room_id
+          schema:
+            type: string
+          required: true
+          description: 取得する部屋のID
+      responses:
+        "200":
+          description: 部屋の状態を取得成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  game_status:
+                    type: object
+                    properties:
+                      game_status:
+                        type: string
+                      current_round:
+                        type: integer
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: room_id is required
+        "404":
+          description: 部屋が見つかりません
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: room not found
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Internal Server Error
   /upload_photo:
       post:
         tags:

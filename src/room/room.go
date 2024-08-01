@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/yashikota/scene-hunter-backend/model"
@@ -14,9 +16,12 @@ var ctx, client = util.SetUpRedisClient()
 
 func CreateRoom(roomID string, user model.User) error {
 	newRoom := model.Room{
-		GameMasterID: user.ID,
-		TotalPlayers: 0,
-		GameRounds:   3,
+		GameMasterID:     user.ID,
+		TotalPlayers:     0,
+		GameRounds:       3,
+		CurrentRound:     1,
+		GameStatus:       model.PreGame,
+		PhotoDescription: []string{},
 		Users: map[string]model.User{
 			user.ID: {
 				ID:              user.ID,
@@ -217,4 +222,33 @@ func DeleteRoom(roomID string) error {
 	}
 
 	return nil
+}
+
+func GetRoomStatus(roomID string) (*model.GameStatus, error) {
+	key := fmt.Sprintf("RoomID:%s", roomID)
+	gameStatus, err := client.JSONGet(ctx, key, "$.game_status").Result()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get the room status: %v", err)
+	}
+
+	currentRoundData, err := client.JSONGet(ctx, key, "$.current_round").Result()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get the current round: %v", err)
+	}
+
+	// [\"Pre-Game\"] to remove brackets and quotes
+	gameStatus = gameStatus[2 : len(gameStatus)-2]
+
+	currentRoundData = strings.Trim(currentRoundData, "[]")
+	currentRound, err := strconv.Atoi(currentRoundData)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert the current round: %v", err)
+	}
+
+	status := model.GameStatus{
+		GameStatus:   gameStatus,
+		CurrentRound: currentRound,
+	}
+
+	return &status, nil
 }
