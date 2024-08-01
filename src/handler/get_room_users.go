@@ -30,5 +30,5 @@ func GetRoomUsersHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Response
-	util.SuccessJsonResponse(w, http.StatusOK, "users", users)
+	util.SuccessJsonResponse(w, http.StatusOK, "room", users)
 }
