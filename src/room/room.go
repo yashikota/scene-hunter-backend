@@ -42,7 +42,7 @@ func CreateRoom(roomID string, user model.User) error {
 	}
 
 	// Set the expiration time to 24 hours
-	err = client.Expire(ctx, roomID, 24 * time.Hour).Err()
+	err = client.Expire(ctx, roomID, 24*time.Hour).Err()
 	if err != nil {
 		return fmt.Errorf("failed to set the expiration time")
 	}
@@ -103,20 +103,20 @@ func CheckExistUser(roomID string, userID string) (bool, error) {
 	return true, nil
 }
 
-func GetRoomUsers(roomID string) ([]*model.Room, error) {
+func GetRoomUsers(roomID string) (*model.RoomUsers, error) {
 	key := fmt.Sprintf("RoomID:%s", roomID)
 	jsonData, err := client.JSONGet(ctx, key, "$").Result()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get the room data")
+		return nil, fmt.Errorf("failed to get the room data: %v", err)
 	}
 
-	var roomData []*model.Room
-	err = json.Unmarshal([]byte(jsonData), &roomData)
+	var users []model.RoomUsers
+	err = json.Unmarshal([]byte(jsonData), &users)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal the room data")
+		return nil, fmt.Errorf("failed to unmarshal the room data: %v", err)
 	}
 
-	return roomData, nil
+	return &users[0], nil
 }
 
 func CheckGameMaster(roomID string, userID string) (bool, int, error) {
