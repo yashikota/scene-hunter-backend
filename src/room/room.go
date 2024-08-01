@@ -89,18 +89,18 @@ func CheckExistRoom(roomID string) (bool, error) {
 	return true, nil
 }
 
-func CheckExistUser(roomID string, userID string) (bool, int, error) {
+func CheckExistUser(roomID string, userID string) (bool, error) {
 	key := fmt.Sprintf("RoomID:%s", roomID)
 	result, err := client.JSONGet(ctx, key, fmt.Sprintf("$.users.%s", userID)).Result()
+
 	if err != nil {
-		return false, http.StatusInternalServerError, fmt.Errorf("failed to check if the user exists")
+		return false, err
+	}
+	if result == "[]" {
+		return false, nil
 	}
 
-	if result == "" {
-		return false, http.StatusNotFound, fmt.Errorf("user does not exist in the room")
-	}
-
-	return true, http.StatusOK, nil
+	return true, nil
 }
 
 func GetRoomUsers(roomID string) ([]*model.Room, error) {

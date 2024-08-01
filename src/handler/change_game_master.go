@@ -33,9 +33,9 @@ func ChangeGameMasterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if the user exists
-	_, statusCode, err := room.CheckExistUser(roomID, user.ID)
+	_, err = room.CheckExistUser(roomID, user.ID)
 	if err != nil {
-		util.ErrorJsonResponse(w, statusCode, err)
+		util.ErrorJsonResponse(w, http.StatusInternalServerError, err)
 		return
 	}
 
