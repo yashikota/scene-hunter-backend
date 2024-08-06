@@ -46,6 +46,7 @@ func main() {
 
 	// Game
 	r.HandleFunc("POST /api/upload_photo", handler.UploadPhotoHandler)
+	r.HandleFunc("GET /api/photo_score", handler.PhotoScoreHandler)
 
 	// Photo Preview
 	photoServer := http.FileServer(http.Dir("./uploads"))

@@ -624,6 +624,71 @@ paths:
                       type: string
                 example:
                   message: internal server error
+  /photo_score:
+    get:
+      tags:
+        - game
+      summary: 写真スコアを計算
+      description: ゲームマスター、プレイヤー1、プレイヤー2の写真URLを受け取り、類似度スコアを計算する
+      parameters:
+        - name: gamemaster_url
+          in: query
+          required: true
+          schema:
+            type: string
+          description: URL of the game master photo
+        - name: player1_url
+          in: query
+          required: true
+          schema:
+            type: string
+          description: URL of the first player photo
+        - name: player2_url
+          in: query
+          required: true
+          schema:
+            type: string
+          description: URL of the second player photo
+      responses:
+        "200":
+          description: Score calculated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  score:
+                    type: string
+                    example: "38.05"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Invalid request payload
+                  errors:
+                    type: array
+                    items:
+                      type: string
+              examples:
+                invalidPayload:
+                  summary: Invalid request payload
+                  value:
+                    message: Invalid request payload
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Failed to calculate photo score
   /ping:
     get:
       tags:
