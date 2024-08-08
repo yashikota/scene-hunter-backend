@@ -531,6 +531,94 @@ paths:
                   message:
                     type: string
                     example: Internal Server Error
+  /game_start:
+    post:
+      tags:
+        - game
+      summary: ゲームを開始する
+      description: ゲーム開始はルームのゲームマスターのみが行える
+      parameters:
+        - in: query
+          name: room_id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id
+              properties:
+                id:
+                  type: string
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: successfully started the game
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+              examples:
+                userIdRequired:
+                  summary: User ID is required
+                  value:
+                    message: id is required
+                roomIdRequired:
+                  summary: Room ID is required
+                  value:
+                    message: room_id is required
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+              examples:
+                notGameMaster:
+                  summary: Not Game Master
+                  value:
+                    message: you are not the game master
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+              example:
+                message: room not found
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+              example:
+                message: internal server error
   /upload_photo:
       post:
         tags:
