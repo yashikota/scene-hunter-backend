@@ -46,8 +46,8 @@ func CreateRoom(roomID string, user model.User) error {
 		return fmt.Errorf("failed to create the room")
 	}
 
-	// Set the expiration time to 24 hours
-	err = client.Expire(ctx, roomID, 24*time.Hour).Err()
+	// Set the expiration time to 3 hours
+	err = client.Expire(ctx, key, 3*time.Hour).Err()
 	if err != nil {
 		return fmt.Errorf("failed to set the expiration time")
 	}

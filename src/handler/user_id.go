@@ -3,14 +3,15 @@ package handler
 import (
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/yashikota/scene-hunter-backend/src/util"
 )
 
 func GenerateUserIDHandler(w http.ResponseWriter, r *http.Request) {
 	ttl, _ := strconv.Atoi(r.URL.Query().Get("ttl"))
-	if ttl == 0 { // if ttl is not set, set 1 day
-		ttl = 60 * 60 * 24 // 1 day
+	if ttl == 0 { // default 3 hours
+		ttl = int(3*time.Hour)
 	}
 
 	userID, err := util.GenerateUserID(ttl)
