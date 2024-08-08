@@ -6,9 +6,16 @@ import (
 
 	"github.com/yashikota/scene-hunter-backend/src/room"
 	"github.com/yashikota/scene-hunter-backend/src/util"
+	"github.com/yashikota/scene-hunter-backend/model"
 )
 
-func GetGameStatusHandler(w http.ResponseWriter, r *http.Request) {
+func GameStartHandler(w http.ResponseWriter, r* http.Request) {
+	user, err := util.ParseAndValidateUser(r, util.ValidateIDRequired)
+	if err != nil {
+		util.ErrorJsonResponse(w, http.StatusBadRequest, err)
+		return
+	}
+
 	// Check if the room exists
 	roomID := r.URL.Query().Get("room_id")
 	if roomID == "" {
@@ -16,7 +23,6 @@ func GetGameStatusHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check if the room exists
 	result, err := room.CheckExistRoom(roomID)
 	if err != nil {
 		util.ErrorJsonResponse(w, http.StatusInternalServerError, err)
@@ -27,13 +33,19 @@ func GetGameStatusHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get the room status
-	status, err := room.GetGameStatus(roomID)
+	// Check user is the game master
+	isGameMaster, status, err := room.CheckGameMaster(roomID, user.ID)
+	if !isGameMaster {
+		util.ErrorJsonResponse(w, status, err)
+		return
+	}
+
+	// Start the game
+	err = room.UpdateGameStatus(roomID, model.GameMasterPhoto)
 	if err != nil {
 		util.ErrorJsonResponse(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	// Response
-	util.SuccessJsonResponse(w, http.StatusOK, "game_status", status)
+	util.SuccessJsonResponse(w, http.StatusOK, "message", "successfully started the game")
 }

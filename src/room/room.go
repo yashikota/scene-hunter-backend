@@ -224,7 +224,7 @@ func DeleteRoom(roomID string) error {
 	return nil
 }
 
-func GetRoomStatus(roomID string) (*model.GameStatus, error) {
+func GetGameStatus(roomID string) (*model.GameStatus, error) {
 	key := fmt.Sprintf("RoomID:%s", roomID)
 	gameStatus, err := client.JSONGet(ctx, key, "$.game_status").Result()
 	if err != nil {
@@ -251,4 +251,14 @@ func GetRoomStatus(roomID string) (*model.GameStatus, error) {
 	}
 
 	return &status, nil
+}
+
+func UpdateGameStatus(roomID string, status string) error {
+	key := fmt.Sprintf("RoomID:%s", roomID)
+	err := client.JSONSet(ctx, key, "$.game_status", fmt.Sprintf("\"%s\"", status)).Err()
+	if err != nil {
+		return fmt.Errorf("failed to update the room status")
+	}
+
+	return nil
 }
