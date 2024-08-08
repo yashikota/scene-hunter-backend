@@ -717,7 +717,7 @@ paths:
       tags:
         - game
       summary: 写真スコアを計算
-      description: ゲームマスター、プレイヤー1、プレイヤー2の写真URLを受け取り、類似度スコアを計算する
+      description: ゲームマスターとプレイヤーの2枚の写真URLを受け取り、類似度スコアを計算する
       parameters:
         - name: gamemaster_url
           in: query
@@ -725,18 +725,18 @@ paths:
           schema:
             type: string
           description: URL of the game master photo
-        - name: player1_url
+        - name: player_url_1
           in: query
           required: true
           schema:
             type: string
-          description: URL of the first player photo
-        - name: player2_url
+          description: URL of the player photo
+        - name: player_url_2
           in: query
           required: true
           schema:
             type: string
-          description: URL of the second player photo
+          description: URL of the player photo
       responses:
         "200":
           description: Score calculated successfully
