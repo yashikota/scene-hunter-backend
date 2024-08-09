@@ -14,13 +14,13 @@ func GenerateRandomScore() float32 {
 	return float32(rand.Intn(899999)+100000) / 10000
 }
 
-func GetPhotoScore(gameMasterUrl string, player1Url string, player2Url string) (string, error) {
+func GetPhotoScore(gameMasterPhotoUrl string, playerPhotoUrl1 string, playerPhotoUrl2 string) (string, error) {
 	// Query Build
 	method := "GET"
 	baseUrl := "https://image-score.yashikota.com/lpips/url"
-	gameMasterQuery := fmt.Sprintf("?gamemaster_url=%s", url.QueryEscape(gameMasterUrl))
-	player1Query := fmt.Sprintf("&player1_url=%s", url.QueryEscape(player1Url))
-	player2Query := fmt.Sprintf("&player2_url=%s", url.QueryEscape(player2Url))
+	gameMasterQuery := fmt.Sprintf("?gamemaster_url=%s", url.QueryEscape(gameMasterPhotoUrl))
+	player1Query := fmt.Sprintf("&player1_url=%s", url.QueryEscape(playerPhotoUrl1))
+	player2Query := fmt.Sprintf("&player2_url=%s", url.QueryEscape(playerPhotoUrl2))
 	queryParams := fmt.Sprintf("%s%s%s", gameMasterQuery, player1Query, player2Query)
 	endpoint := fmt.Sprintf("%s%s", baseUrl, queryParams)
 

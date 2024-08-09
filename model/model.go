@@ -7,7 +7,6 @@ type User struct {
 	Status          string          `json:"status"`
 	PhotoScoreIndex int             `json:"photo_score_index"`
 	Score           map[int]float32 `json:"score"`
-	Photo           map[int]string  `json:"photo"`
 }
 
 type RoomUsers struct {

@@ -281,12 +281,6 @@ paths:
                             "2": 25.4512,
                             "3": 35.2122
                           },
-                          "photo": {
-                            "0": "uploads/286193/converted/01J0HMRXE70000000000000000.jpeg",
-                            "1": "uploads/286193/converted/01J0HMRZRT0000000000000000.jpeg",
-                            "2": "uploads/286193/converted/01J0HMSB7Z0000000000000000.jpeg",
-                            "3": "uploads/286193/converted/01J0HMSEC10000000000000000.jpeg"
-                          }
                         }
                       }
                     }
@@ -716,27 +710,19 @@ paths:
     get:
       tags:
         - game
-      summary: 写真スコアを計算
-      description: ゲームマスターとプレイヤーの2枚の写真URLを受け取り、類似度スコアを計算する
+      summary: 写真の類似度スコアを計算
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IDInfo"
       parameters:
-        - name: gamemaster_url
+        - name: room_id
           in: query
           required: true
           schema:
             type: string
-          description: URL of the game master photo
-        - name: player_url_1
-          in: query
-          required: true
-          schema:
-            type: string
-          description: URL of the player photo
-        - name: player_url_2
-          in: query
-          required: true
-          schema:
-            type: string
-          description: URL of the player photo
       responses:
         "200":
           description: Score calculated successfully
@@ -747,7 +733,7 @@ paths:
                 properties:
                   score:
                     type: string
-                    example: "38.05"
+                    example: 38.15
         "400":
           description: Bad Request
           content:

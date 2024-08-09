@@ -30,7 +30,6 @@ func CreateRoom(roomID string, user model.User) error {
 				Status:          "active",
 				PhotoScoreIndex: 0,
 				Score:           map[int]float32{},
-				Photo:           map[int]string{},
 			},
 		},
 	}
@@ -62,7 +61,6 @@ func JoinRoom(roomID string, user model.User) error {
 		Lang:   user.Lang,
 		Status: "active",
 		Score:  map[int]float32{},
-		Photo:  map[int]string{},
 	}
 
 	playerJSON, err := json.Marshal(newPlayer)
@@ -173,20 +171,20 @@ func AddRoomUserPhotoAndScore(roomID string, userID string, photoURL string) err
 	// [N] to remove brackets
 	photoScoreIndex = photoScoreIndex[1 : len(photoScoreIndex)-1]
 
-	err = client.JSONSet(ctx, roomID, fmt.Sprintf("$.users.%s.photo.%s", userID, photoScoreIndex), fmt.Sprintf(
+	err = client.JSONSet(ctx, key, fmt.Sprintf("$.users.%s.photo.%s", userID, photoScoreIndex), fmt.Sprintf(
 		"\"%s\"", photoURL)).Err()
 	if err != nil {
 		return fmt.Errorf("failed to set the player's photo")
 	}
 
 	score := util.GenerateRandomScore()
-	err = client.JSONSet(ctx, roomID, fmt.Sprintf("$.users.%s.score.%s", userID, photoScoreIndex), fmt.Sprintf(
+	err = client.JSONSet(ctx, key, fmt.Sprintf("$.users.%s.score.%s", userID, photoScoreIndex), fmt.Sprintf(
 		"%.4f", score)).Err()
 	if err != nil {
 		return fmt.Errorf("failed to set the player's score")
 	}
 
-	err = client.JSONNumIncrBy(ctx, roomID, fmt.Sprintf("$.users.%s.photo_score_index", userID), 1).Err()
+	err = client.JSONNumIncrBy(ctx, key, fmt.Sprintf("$.users.%s.photo_score_index", userID), 1).Err()
 	if err != nil {
 		return fmt.Errorf("failed to increment the player's score index")
 	}
@@ -261,4 +259,59 @@ func UpdateGameStatus(roomID string, status string) error {
 	}
 
 	return nil
+}
+
+func GetGameMasterPhotoUrl(roomID string) (string, error) {
+	key := fmt.Sprintf("RoomID:%s", roomID)
+	gameMasterID, err := client.JSONGet(ctx, key, "$.game_master_id").Result()
+	if err != nil {
+		return "", fmt.Errorf("failed to get the game master ID")
+	}
+
+	gameMasterID = gameMasterID[2 : len(gameMasterID)-2]
+	gameMasterPhotoIndex, err := client.JSONGet(ctx, key, fmt.Sprintf("$.users.%s.photo_score_index", gameMasterID)).Result()
+	if err != nil {
+		return "", fmt.Errorf("failed to get the game master's photo index")
+	}
+
+	// [N] to remove brackets
+	gameMasterPhotoIndex = gameMasterPhotoIndex[1 : len(gameMasterPhotoIndex)-1]
+
+	gameMasterPhotoUrl, err := client.JSONGet(ctx, key, fmt.Sprintf("$.users.%s.photo.%s", gameMasterID, gameMasterPhotoIndex)).Result()
+	if err != nil {
+		return "", fmt.Errorf("failed to get the game master's photo URL")
+	}
+
+	return gameMasterPhotoUrl[1 : len(gameMasterPhotoUrl)-1], nil
+}
+
+func GetPlayerPhotoUrls(roomID string, userID string) ([]string, error) {
+	key := fmt.Sprintf("RoomID:%s", roomID)
+	photoScoreIndex, err := client.JSONGet(ctx, key, fmt.Sprintf("$.users.%s.photo_score_index", userID)).Result()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get the player's photo index")
+	}
+
+	// [N] to remove brackets
+	photoScoreIndex = photoScoreIndex[1 : len(photoScoreIndex)-1]
+
+	photo1, err := client.JSONGet(ctx, key, fmt.Sprintf("$.users.%s.photo.%s", userID, photoScoreIndex)).Result()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get the player's photo URL")
+	}
+
+	// Decrement PhotoIndex
+	photoScoreIndexInt, err := strconv.Atoi(photoScoreIndex)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert the player's photo index")
+	}
+	photoScoreIndexInt--
+	photoScoreIndex = strconv.Itoa(photoScoreIndexInt)
+
+	photo2, err := client.JSONGet(ctx, key, fmt.Sprintf("$.users.%s.photo.%s", userID, photoScoreIndex)).Result()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get the player's photo URL")
+	}
+
+	return []string{photo1[1 : len(photo1)-1], photo2[1 : len(photo2)-1]}, nil
 }

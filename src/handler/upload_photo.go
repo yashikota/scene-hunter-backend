@@ -108,6 +108,7 @@ func UploadPhotoHandler(w http.ResponseWriter, r *http.Request) {
 		"original":  originalFilePath,
 		"converted": convertedFilePath,
 	}
+	log.Println(uploadLog)
 
 	err = room.AddRoomUserPhotoAndScore(roomID, userID, convertedFilePath)
 	if err != nil {
@@ -115,5 +116,5 @@ func UploadPhotoHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	util.SuccessJsonResponse(w, http.StatusOK, "image_path", uploadLog)
+	util.SuccessJsonResponse(w, http.StatusOK, "message", "photo uploaded")
 }
